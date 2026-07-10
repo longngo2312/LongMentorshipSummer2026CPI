@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "name": "api",
+  "version": "1.0.0",
+  "description": "google form clone",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/longngo2312/LongMentorshipSummer2026CPI.git"
+  },
+  "author": "Jack Ngo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/longngo2312/LongMentorshipSummer2026CPI/issues"
+  },
+  "homepage": "https://github.com/longngo2312/LongMentorshipSummer2026CPI#readme"
+}
