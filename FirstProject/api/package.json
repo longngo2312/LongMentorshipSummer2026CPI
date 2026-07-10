@@ -1,12 +1,13 @@
 {
   "dependencies": {
+    "better-sqlite3": "^12.11.1",
     "express": "^5.2.1"
   },
   "name": "api",
   "version": "1.0.0",
   "description": "google form clone",
   "main": "index.js",
-  "devDependencies": {},
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
