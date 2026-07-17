@@ -15,7 +15,7 @@ adminDB.exec(
             id              INTERGET    PRIMARY KEY     AUTOINCREMENT,
             username        TEXT        NOT NULL        UNIQUE,
             email           TEXT        NOT NULL        UNIQUE,
-            password_hased  TEXT        NOT NULL,
+            password_hash  TEXT        NOT NULL,
             tenant_db_path  TEXT        NOT NULL        DEFAULT '',
             created_at      TEXT        NOT NULL        DEFAULT (datetime('now')),
             last_login_at   TEXT 

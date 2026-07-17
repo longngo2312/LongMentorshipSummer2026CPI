@@ -2,7 +2,7 @@
 export interface User {
   id: number;
   username: string;
-  password_hased: string;
+  password_hash: string;
   email: string;
   tenant_db_path: string;
   created_at: string;
