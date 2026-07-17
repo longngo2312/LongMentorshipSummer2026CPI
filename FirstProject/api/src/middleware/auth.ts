@@ -4,6 +4,7 @@ import type { JWTPayload } from "../types/index.js";
 
 export const JWT_SECRET = process.env.JWT_SECRET ?? "dev-secret-change-in-prod";
 
+//declare req.user
 declare global {
   namespace Express {
     interface Request {
