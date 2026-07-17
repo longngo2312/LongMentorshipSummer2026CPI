@@ -9,7 +9,7 @@ export interface User {
   last_login_at: string | null;
 }
 
-export interface JWTpayload {
+export interface JWTPayload {
   userId: number;
   email: string;
 }
