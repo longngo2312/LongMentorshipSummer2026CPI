@@ -12,7 +12,8 @@ export function openTenantDB(tenantDBPath: string) {
   db.pragma("foreign_keys = ON");
 
   db.exec(
-    `
+    // Create tables for each users
+    `   
         CREATE TABLE IF NOT EXISTS document_schemas (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             name        TEXT NOT NULL UNIQUE,
