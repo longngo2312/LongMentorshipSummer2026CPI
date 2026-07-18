@@ -17,6 +17,7 @@ app.use((req, _res, next) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/schemas", schemaRoutes);
+
 app.listen(PORT, () => {
   console.log("App listening at PORT", PORT);
 });
