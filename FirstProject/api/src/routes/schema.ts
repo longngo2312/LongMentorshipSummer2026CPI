@@ -4,6 +4,7 @@ import {
   deleteSchemaById,
   getAllSchemas,
   getSchemaDetails,
+  UpdateSchemaDetails,
 } from "../controllers/schemaControllers.js";
 import { requireAuth } from "../middleware/auth.js";
 

@@ -51,29 +51,41 @@ export function getSchemaDetails(req: Request, res: Response) {
 export function createSchema(req: Request, res: Response) {
   const { name, description, columns } = req.body;
   const db = getTenantDB(req.user!.userId); //open database whose userid is userid
-  if (!name || !description || !columns) {
+  if (!name) {
     return res.status(400).json({ error: "Name is required" });
+  }
+
+  if (!Array.isArray(columns)) {
+    return res.status(400).json({
+      error: "Columns must be an array",
+    });
   }
   //inserting rows into db
   const insertSchema = db
     .prepare(`INSERT INTO document_schemas (name, description) VALUES (?, ?)`)
     .run(name, description);
-  const { lastInsertRowid } = insertSchema;
 
   const insertColumns = db.prepare(
     `INSERT INTO schema_columns (schema_id, name, description, data_type, enum_options, required, position VALUES (?,?,?,?,?,?,?))`,
   );
-  for (let i = 0; i < columns.length; i++) {
-    let col = columns[i];
-    insertColumns.run(
-      lastInsertRowid,
-      col.name,
-      col.description,
-      col.data_type ?? "text",
-      col.enum_options ? JSON.stringify(col.enum_options) : null,
-      col.required ? 1 : 0,
-      i,
-    );
-  }
-  res.status(200).json({ message: "Create Schema successfully" });
+
+  const transaction = db.transaction(() => {
+    const { lastInsertRowid } = insertSchema;
+    const schemaId = Number(lastInsertRowid);
+    for (let i = 0; i < columns.length; i++) {
+      let col = columns[i];
+      insertColumns.run(
+        schemaId,
+        col.name,
+        col.description,
+        col.data_type ?? "text",
+        col.enum_options ? JSON.stringify(col.enum_options) : null,
+        col.required ? 1 : 0,
+        i,
+      );
+    }
+    return schemaId;
+  })();
+
+  res.status(200).json({ message: "Create Schema successfully", transaction });
 }
