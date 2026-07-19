@@ -1,10 +1,10 @@
 import { Router } from "express";
 import {
   createSchema,
-  deleteSchemaById,
+  deleteSchema,
   getAllSchemas,
   getSchemaDetails,
-  UpdateSchemaDetails,
+  updateSchema,
 } from "../controllers/schemaControllers.js";
 import { requireAuth } from "../middleware/auth.js";
 
@@ -15,7 +15,7 @@ router.use(requireAuth);
 router.post("/", createSchema);
 router.get("/", getAllSchemas);
 router.get("/:id", getSchemaDetails);
-router.put("/:id", UpdateSchemaDetails);
-router.delete("/:id", deleteSchemaById);
+router.put("/:id", updateSchema);
+router.delete("/:id", deleteSchema);
 
 export default router;
