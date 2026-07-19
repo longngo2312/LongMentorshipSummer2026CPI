@@ -20,12 +20,12 @@ export function getAllSchemas(req: Request, res: Response) {
       // query everything in document schema as well as count of total column per schema
       `
     SELECT *, COUNT(DISTINCT id) AS column_count FROM document_schemas
-        LEFT JOIN column_schemas ON document_schemas.id = column_schemas.schema_id
+        LEFT JOIN schema_columns ON document_schemas.id = schema_columns.schema_id
         GROUP BY document_schemas.id 
         ORDER BY document_schemas.created_at DESC
     `,
     )
-    .get();
+    .all();
   res.json(schema); //send schema back to frontend as a json
 }
 
@@ -66,7 +66,7 @@ export function createSchema(req: Request, res: Response) {
     .run(name, description);
 
   const insertColumns = db.prepare(
-    `INSERT INTO schema_columns (schema_id, name, description, data_type, enum_options, required, position VALUES (?,?,?,?,?,?,?))`,
+    `INSERT INTO schema_columns (schema_id, name, description, data_type, enum_options, required, position) VALUES (?,?,?,?,?,?,?)`,
   );
 
   const transaction = db.transaction(() => {
