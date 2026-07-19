@@ -12,7 +12,7 @@ adminDB.pragma("foreign_keys = ON");
 adminDB.exec(
   `
         CREATE table IF NOT EXISTS users (
-            id              INTERGET    PRIMARY KEY     AUTOINCREMENT,
+            id              INTEGER    PRIMARY KEY     AUTOINCREMENT,
             username        TEXT        NOT NULL        UNIQUE,
             email           TEXT        NOT NULL        UNIQUE,
             password_hash  TEXT        NOT NULL,
