@@ -22,5 +22,6 @@ adminDB.exec(
         )
     `,
 );
-
+const users = adminDB.prepare("SELECT * FROM users").all();
+console.log(users);
 export default adminDB;

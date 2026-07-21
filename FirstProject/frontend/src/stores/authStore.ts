@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { User } from "../types/index";
+
 interface AuthState {
   user: User | null;
   token: string | null;
