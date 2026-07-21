@@ -149,7 +149,7 @@ export async function login(req: Request<{}, {}, LoginBody>, res: Response) {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password.",
+        message: "User not found",
       });
     }
 
@@ -158,7 +158,7 @@ export async function login(req: Request<{}, {}, LoginBody>, res: Response) {
     if (!validPassword) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password.",
+        message: "Invalid password.",
       });
     }
 
