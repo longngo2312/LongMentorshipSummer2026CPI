@@ -1,16 +1,16 @@
-import { AppBar, Box, Button, Container, Toolbar } from '@mui/material'
-import { NavLink, Outlet } from 'react-router-dom'
+import { AppBar, Box, Button, Container, Toolbar } from "@mui/material";
+import { NavLink, Outlet } from "react-router-dom";
 
 const links = [
-  { to: '/schemas', label: 'Schemas' },
-  { to: '/upload', label: 'Upload' },
-  { to: '/documents', label: 'Documents' },
-  { to: '/ask', label: 'Ask' },
-]
+  { to: "/schemas", label: "Schemas" },
+  { to: "/upload", label: "Upload" },
+  { to: "/documents", label: "Documents" },
+  { to: "/ask", label: "Query" },
+];
 
-function Layout() {
+export default function Layout() {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
       <AppBar position="static" color="default" elevation={1}>
         <Toolbar sx={{ gap: 1 }}>
           {links.map((link) => (
@@ -20,8 +20,8 @@ function Layout() {
               to={link.to}
               color="inherit"
               sx={{
-                '&.active': {
-                  fontWeight: 'bold',
+                "&.active": {
+                  fontWeight: "bold",
                 },
               }}
             >
@@ -34,7 +34,5 @@ function Layout() {
         <Outlet />
       </Container>
     </Box>
-  )
+  );
 }
-
-export default Layout

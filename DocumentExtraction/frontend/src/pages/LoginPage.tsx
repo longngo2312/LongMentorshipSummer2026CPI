@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../api/auth";
 import { ApiError } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
