@@ -1,3 +1,4 @@
+import { AppBar, Box, Button, Container, Toolbar } from '@mui/material'
 import { NavLink, Outlet } from 'react-router-dom'
 
 const links = [
@@ -9,18 +10,30 @@ const links = [
 
 function Layout() {
   return (
-    <div>
-      <nav>
-        {links.map((link) => (
-          <NavLink key={link.to} to={link.to}>
-            {link.label}
-          </NavLink>
-        ))}
-      </nav>
-      <main>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+      <AppBar position="static" color="default" elevation={1}>
+        <Toolbar sx={{ gap: 1 }}>
+          {links.map((link) => (
+            <Button
+              key={link.to}
+              component={NavLink}
+              to={link.to}
+              color="inherit"
+              sx={{
+                '&.active': {
+                  fontWeight: 'bold',
+                },
+              }}
+            >
+              {link.label}
+            </Button>
+          ))}
+        </Toolbar>
+      </AppBar>
+      <Container component="main" sx={{ py: 3, flexGrow: 1 }}>
         <Outlet />
-      </main>
-    </div>
+      </Container>
+    </Box>
   )
 }
 
