@@ -55,7 +55,7 @@ export async function register(
 
     // Check existing user
     const existing = adminDb
-      .prepare("SELECT id FROM users WHERE email = ?")
+      .prepare("SELECT id FROM users WHERE email = ?;")
       .get(email);
 
     if (existing) {
@@ -73,8 +73,8 @@ export async function register(
       .prepare(
         `
         INSERT INTO users
-        (username, password_hash, email, tenant_db_path)
-        VALUES (?, ?, ?, ?)
+          (username, password_hash, email, tenant_db_path)
+          VALUES (?, ?, ?, ?);
       `,
       )
       .run(username, passwordHash, email, "");
@@ -89,8 +89,8 @@ export async function register(
       .prepare(
         `
         UPDATE users
-        SET tenant_db_path = ?
-        WHERE id = ?
+          SET tenant_db_path = ?
+          WHERE id = ?;
       `,
       )
       .run(tenantDBPath, userId);
@@ -141,7 +141,7 @@ export async function login(req: Request<{}, {}, LoginBody>, res: Response) {
           email,
           password_hash
         FROM users
-        WHERE email = ?
+        WHERE email = ?;
       `,
       )
       .get(email) as User | undefined;
@@ -167,7 +167,7 @@ export async function login(req: Request<{}, {}, LoginBody>, res: Response) {
         `
         UPDATE users
         SET last_login_at = datetime('now')
-        WHERE id = ?
+        WHERE id = ?;
       `,
       )
       .run(user.id);

@@ -6,7 +6,7 @@ import type { DocumentSchema, SchemaColumns, User } from "../types/index.js";
 //helper method to get tenant database based on userId
 function getTenantDB(userId: number) {
   const db = adminDB
-    .prepare(`SELECT tenant_db_path FROM users WHERE id = ?`)
+    .prepare(`SELECT tenant_db_path FROM users WHERE id = ?;`)
     .get(userId) as Pick<User, "tenant_db_path">;
   return openTenantDB(db.tenant_db_path);
 }
@@ -22,7 +22,7 @@ export function getAllSchemas(req: Request, res: Response) {
     SELECT *, COUNT(DISTINCT id) AS column_count FROM document_schemas
         LEFT JOIN schema_columns ON document_schemas.id = schema_columns.schema_id
         GROUP BY document_schemas.id 
-        ORDER BY document_schemas.created_at DESC
+        ORDER BY document_schemas.created_at DESC;
     `,
     )
     .all();
@@ -34,14 +34,14 @@ export function getSchemaDetails(req: Request, res: Response) {
   //this will return the schema from document_schema as well as its columns
   const db = getTenantDB(req.user!.userId); //open database whose userid is userid
   const schema = db
-    .prepare(`SELECT * FROM document_schemas WHERE id = ?`)
+    .prepare(`SELECT * FROM document_schemas WHERE id = ?;`)
     .get(req.params.id) as DocumentSchema | undefined;
 
   if (!schema) {
     return res.status(404).json({ error: "Schema Not Found" });
   }
   const schemaColumns = db
-    .prepare(`SELECT * FROM schema_columns WHERE schema_id = ?`)
+    .prepare(`SELECT * FROM schema_columns WHERE schema_id = ?;`)
     .all(req.params.id) as SchemaColumns[]; //return every single rows thus the array type
 
   res.json({ ...schema, schemaColumns }); //return the schema as well as the arrays of rows
@@ -62,11 +62,11 @@ export function createSchema(req: Request, res: Response) {
   }
   //inserting rows into db
   const insertSchema = db
-    .prepare(`INSERT INTO document_schemas (name, description) VALUES (?, ?)`)
+    .prepare(`INSERT INTO document_schemas (name, description) VALUES (?, ?);`)
     .run(name, description);
 
   const insertColumns = db.prepare(
-    `INSERT INTO schema_columns (schema_id, name, description, data_type, enum_options, required, position) VALUES (?,?,?,?,?,?,?)`,
+    `INSERT INTO schema_columns (schema_id, name, description, data_type, enum_options, required, position) VALUES (?,?,?,?,?,?,?);`,
   );
 
   const transaction = db.transaction(() => {
@@ -96,7 +96,7 @@ export function updateSchema(req: Request, res: Response) {
   const db = getTenantDB(req.user!.userId);
 
   const existing = db
-    .prepare("SELECT id FROM document_schemas WHERE id = ?")
+    .prepare("SELECT id FROM document_schemas WHERE id = ?;")
     .get(req.params.id);
   if (!existing) {
     res.status(404).json({ error: "Schema not found" });
@@ -108,17 +108,17 @@ export function updateSchema(req: Request, res: Response) {
      SET name = COALESCE(?, name), 
          description = COALESCE(?, description),
          updated_at = datetime('now')
-     WHERE id = ?`, // Coalesce update the value if not null use the original otherwise
+     WHERE id = ?;`, // Coalesce update the value if not null use the original otherwise
   );
 
   const deleteColumns = db.prepare(
-    "DELETE FROM schema_columns WHERE schema_id = ?",
+    "DELETE FROM schema_columns WHERE schema_id = ?;",
   );
 
   const insertColumn = db.prepare(
     `INSERT INTO schema_columns
       (schema_id, name, description, data_type, enum_options, required, position)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?);`,
   );
 
   db.transaction(() => {
@@ -141,11 +141,11 @@ export function updateSchema(req: Request, res: Response) {
   })();
 
   const schema = db
-    .prepare("SELECT * FROM document_schemas WHERE id = ?")
+    .prepare("SELECT * FROM document_schemas WHERE id = ?;")
     .get(req.params.id) as DocumentSchema;
   const cols = db
     .prepare(
-      "SELECT * FROM schema_columns WHERE schema_id = ? ORDER BY position",
+      "SELECT * FROM schema_columns WHERE schema_id = ? ORDER BY position;",
     )
     .all(req.params.id) as SchemaColumns[];
   res.json({ ...schema, columns: cols });
@@ -154,12 +154,12 @@ export function updateSchema(req: Request, res: Response) {
 export function deleteSchema(req: Request, res: Response) {
   const db = getTenantDB(req.user!.userId);
   const existing = db
-    .prepare("SELECT id FROM document_schemas WHERE id = ?")
+    .prepare("SELECT id FROM document_schemas WHERE id = ?;")
     .get(req.params.id);
   if (!existing) {
     res.status(404).json({ error: "Schema not found" });
     return;
   }
-  db.prepare("DELETE FROM document_schemas WHERE id = ?").run(req.params.id);
+  db.prepare("DELETE FROM document_schemas WHERE id = ?;").run(req.params.id);
   res.status(204).send();
 }

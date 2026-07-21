@@ -20,7 +20,7 @@ export function openTenantDB(tenantDBPath: string) {
             description TEXT,
             created_at  TEXT NOT NULL DEFAULT (datetime('now')),
             updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
-        )
+        );
 
         CREATE TABLE IF NOT EXISTS schema_columns (
             id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,7 +32,7 @@ export function openTenantDB(tenantDBPath: string) {
             enum_options TEXT,
             required     INTEGER NOT NULL DEFAULT 0,
             position     INTEGER NOT NULL DEFAULT 0
-        )
+        );
     `,
   );
 

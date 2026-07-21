@@ -6,7 +6,7 @@ const app = express();
 const PORT = 3000;
 
 //middleware
-app.use(cors({ origin: "https://localhost:5173" }));
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 //Routes
 
