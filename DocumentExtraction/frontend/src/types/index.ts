@@ -14,11 +14,10 @@ export interface SchemaColumn {
 export interface DocumentSchema {
   id: number;
   name: string;
-  description: string;
-  columns: SchemaColumn[];
-  documentCount: number;
-  createdAt: string;
-  updatedAt: string;
+  description: string | null;
+  column_count: number;
+  created_at: string;
+  updated_at: string;
 }
 export interface User {
   id: number;

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { openTenantDB, tenantDBPath } from "../db/tenantDB.js";
+import { openTenantDB, tenantDBPath } from "../db/tenantDb.js";
 import type { DocumentSchema, SchemaColumns } from "../types/index.js";
 
 function getTenantDB(userId: number) {
@@ -8,20 +8,23 @@ function getTenantDB(userId: number) {
 
 //get(/)
 export function getAllSchemas(req: Request, res: Response) {
-  const { userId } = req.user!;
-  const db = getTenantDB(userId);
-  const schema = db
-    .prepare(
-      // query everything in document schema as well as count of total column per schema
-      `
-    SELECT *, COUNT(DISTINCT id) AS column_count FROM document_schemas
-        LEFT JOIN schema_columns ON document_schemas.id = schema_columns.schema_id
-        GROUP BY document_schemas.id 
-        ORDER BY document_schemas.created_at DESC;
-    `,
-    )
-    .all();
-  res.json(schema); //send schema back to frontend as a json
+  try {
+    const { userId } = req.user!;
+    const db = getTenantDB(userId);
+    const schemas = db
+      .prepare(
+        `SELECT document_schemas.*, COUNT(schema_columns.id) AS column_count
+         FROM document_schemas
+         LEFT JOIN schema_columns ON document_schemas.id = schema_columns.schema_id
+         GROUP BY document_schemas.id
+         ORDER BY document_schemas.created_at DESC;`,
+      )
+      .all();
+    res.json(schemas);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch schemas" });
+  }
 }
 
 //get(/:id) get schema details by id
@@ -64,13 +67,13 @@ export function createSchema(req: Request, res: Response) {
     `INSERT INTO schema_columns (schema_id, name, description, data_type, enum_options, required, position) VALUES (?,?,?,?,?,?,?);`,
   );
 
-  const transaction = db.transaction(() => {
+  const schemaId = db.transaction(() => {
     const { lastInsertRowid } = insertSchema;
-    const schemaId = Number(lastInsertRowid);
+    const id = Number(lastInsertRowid);
     for (let i = 0; i < columns.length; i++) {
-      let col = columns[i];
+      const col = columns[i];
       insertColumns.run(
-        schemaId,
+        id,
         col.name,
         col.description,
         col.data_type ?? "text",
@@ -79,10 +82,20 @@ export function createSchema(req: Request, res: Response) {
         i,
       );
     }
-    return schemaId;
+    return id;
   })();
 
-  res.status(200).json({ message: "Create Schema successfully", transaction });
+  const created = db
+    .prepare(
+      `SELECT document_schemas.*, COUNT(schema_columns.id) AS column_count
+       FROM document_schemas
+       LEFT JOIN schema_columns ON document_schemas.id = schema_columns.schema_id
+       WHERE document_schemas.id = ?
+       GROUP BY document_schemas.id;`,
+    )
+    .get(schemaId);
+
+  res.status(201).json(created);
 }
 
 //update schema

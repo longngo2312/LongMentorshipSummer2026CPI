@@ -10,9 +10,10 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SchemaBuilder, { type ColumnDraft } from "../components/SchemaBuilder";
 import { useSchemaStore } from "../stores/schemaStore";
+import type { DocumentSchema } from "../types";
 
 const emptyColumn: ColumnDraft = {
   name: "",
@@ -32,7 +33,13 @@ export default function SchemaBuilderPage() {
 
   const addSchema = useSchemaStore((s) => s.addSchema);
   const fetchSchema = useSchemaStore((s) => s.fetchSchema);
+  const schemaArray = useSchemaStore((s) => s.schemas) as DocumentSchema[];
+  const deleteSchema = useSchemaStore((s) => s.removeSchema);
+  useEffect(() => {
+    fetchSchema();
+  }, []);
 
+  console.log(schemaArray);
   function resetForm() {
     setSchemaName("");
     setSchemaDescription("");
@@ -64,6 +71,7 @@ export default function SchemaBuilderPage() {
             : null,
       }));
       await addSchema(schemaName, schemaDescription, payload);
+      await fetchSchema();
       closeDrawer();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create schema");
@@ -85,31 +93,6 @@ export default function SchemaBuilderPage() {
   function removeColumn(index: number) {
     setColumns((prev) => prev.filter((_, i) => i !== index));
   }
-
-  const PLACEHOLDER_SCHEMAS = [
-    {
-      id: 1,
-      name: "Invoice",
-      description: "Extract invoice fields",
-      columns: 6,
-      createdAt: "Jul 1, 2026",
-    },
-    {
-      id: 2,
-      name: "Receipt",
-      description: "Parse receipt data",
-      columns: 4,
-      createdAt: "Jul 5, 2026",
-    },
-    {
-      id: 3,
-      name: "Contract",
-      description: "Extract contract terms",
-      columns: 8,
-      createdAt: "Jul 10, 2026",
-    },
-  ];
-
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Box
@@ -128,50 +111,61 @@ export default function SchemaBuilderPage() {
         </Button>
       </Box>
 
-      <Stack spacing={1.5}>
-        {PLACEHOLDER_SCHEMAS.map((schema) => (
-          <Paper
-            key={schema.id}
-            variant="outlined"
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              px: 2,
-              py: 1.5,
-              "&:hover": { bgcolor: "action.hover" },
-              cursor: "pointer",
-            }}
-          >
-            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }} noWrap>
-                {schema.name}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" noWrap>
-                {schema.description}
-              </Typography>
-            </Box>
-            <Chip
-              label={`${schema.columns} columns`}
-              size="small"
-              sx={{ mx: 2, flexShrink: 0 }}
-            />
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mr: 1.5, flexShrink: 0 }}
+      {schemaArray.length === 0 ? (
+        <Paper variant="outlined" sx={{ p: 6, textAlign: "center" }}>
+          <Typography color="text.secondary">
+            No schemas yet. Click <strong>Add Schema</strong> to create one.
+          </Typography>
+        </Paper>
+      ) : (
+        <Stack spacing={1.5}>
+          {schemaArray.map((schema: DocumentSchema) => (
+            <Paper
+              key={schema.id}
+              variant="outlined"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                px: 2,
+                py: 1.5,
+                "&:hover": { bgcolor: "action.hover" },
+                cursor: "pointer",
+              }}
             >
-              {schema.createdAt}
-            </Typography>
-            <IconButton
-              size="small"
-              color="error"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Paper>
-        ))}
-      </Stack>
+              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }} noWrap>
+                  {schema.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" noWrap>
+                  {schema.description ?? "—"}
+                </Typography>
+              </Box>
+              <Chip
+                label={`${schema.column_count} column${schema.column_count !== 1 ? "s" : ""}`}
+                size="small"
+                sx={{ mx: 2, flexShrink: 0 }}
+              />
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mr: 1.5, flexShrink: 0 }}
+              >
+                {new Date(schema.created_at).toLocaleDateString()}
+              </Typography>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteSchema(schema.id);
+                }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Paper>
+          ))}
+        </Stack>
+      )}
       <Drawer
         anchor="right"
         open={drawerOpen}

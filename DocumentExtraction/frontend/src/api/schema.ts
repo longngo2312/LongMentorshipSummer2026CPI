@@ -13,7 +13,9 @@ export function createDocumentSchema(
 }
 
 export function getAllSchemas() {
-  return apiFetch<DocumentSchema[]>("/schemas");
+  return apiFetch<DocumentSchema[]>("/schemas", {
+    method: "GET",
+  });
 }
 
 export function getSchema(id: number) {
