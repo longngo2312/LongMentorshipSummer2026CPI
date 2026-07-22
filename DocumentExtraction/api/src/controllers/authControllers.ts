@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import adminDb from "../db/adminDB.js";
-import { provisionTenantDB } from "../db/tenantDb.js";
+import { provisionTenantDB } from "../db/tenantDB.js";
 import { JWT_SECRET } from "../middleware/auth.js";
 import type { User } from "../types/index.js";
 

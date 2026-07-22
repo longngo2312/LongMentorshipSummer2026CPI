@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { openTenantDB, tenantDBPath } from "../db/tenantDb.js";
+import { openTenantDB, tenantDBPath } from "../db/tenantDB.js";
 import type { DocumentSchema, SchemaColumns } from "../types/index.js";
 
 function getTenantDB(userId: number) {

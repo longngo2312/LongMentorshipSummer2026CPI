@@ -16,7 +16,6 @@ import { useAuthStore } from "../stores/authStore";
 
 function ProtectedRoute() {
   const token = useAuthStore((s) => s.token);
-  console.log(token);
   return token ? <Outlet /> : <Navigate to="/login" replace />;
 }
 function AppRouter() {
