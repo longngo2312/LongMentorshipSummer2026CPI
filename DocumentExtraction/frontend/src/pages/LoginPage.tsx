@@ -10,7 +10,6 @@ import type React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../api/auth";
-import { ApiError } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 
 export default function LoginPage() {
@@ -30,7 +29,7 @@ export default function LoginPage() {
       setAuth(user, token);
       navigate("/");
     } catch (error) {
-      setError(error instanceof ApiError ? error.message : "Login Failed");
+      setError(error instanceof Error ? error.message : "Login Failed");
     } finally {
       setLoading(false);
     }

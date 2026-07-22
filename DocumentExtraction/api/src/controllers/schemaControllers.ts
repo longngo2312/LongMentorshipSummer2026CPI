@@ -1,14 +1,9 @@
 import { Request, Response } from "express";
-import adminDB from "../db/adminDB.js";
-import { openTenantDB } from "../db/tenantDB.js";
-import type { DocumentSchema, SchemaColumns, User } from "../types/index.js";
+import { openTenantDB, tenantDBPath } from "../db/tenantDb.js";
+import type { DocumentSchema, SchemaColumns } from "../types/index.js";
 
-//helper method to get tenant database based on userId
 function getTenantDB(userId: number) {
-  const db = adminDB
-    .prepare(`SELECT tenant_db_path FROM users WHERE id = ?;`)
-    .get(userId) as Pick<User, "tenant_db_path">;
-  return openTenantDB(db.tenant_db_path);
+  return openTenantDB(tenantDBPath(userId));
 }
 
 //get(/)

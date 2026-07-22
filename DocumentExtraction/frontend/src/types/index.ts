@@ -6,7 +6,7 @@ export interface SchemaColumn {
   name: string;
   description: string;
   data_type: ColumnDataType;
-  enumOptions: string[] | null;
+  enum_options: string[] | null;
   required: boolean;
   position: number;
 }

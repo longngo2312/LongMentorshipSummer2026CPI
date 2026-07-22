@@ -35,16 +35,18 @@ export function openTenantDB(tenantDBPath: string) {
         );
     `,
   );
-
   return db;
+}
+
+export function tenantDBPath(userId: number): string {
+  return path.join(TENANTS_DIR, `user_${userId}.sqlite`);
 }
 
 export function provisionTenantDB(userId: number): string {
   if (!fs.existsSync(TENANTS_DIR)) {
     fs.mkdirSync(TENANTS_DIR, { recursive: true });
   }
-
-  const dbPath = path.join(TENANTS_DIR, `user_${userId}.sqlite`);
+  const dbPath = tenantDBPath(userId);
   openTenantDB(dbPath);
   return dbPath;
 }
