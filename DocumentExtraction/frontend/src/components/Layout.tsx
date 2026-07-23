@@ -35,29 +35,35 @@ export default function Layout() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
       <AppBar position="static" color="default" elevation={1}>
-        <Toolbar sx={{ gap: 1 }}>
+        <Toolbar sx={{ gap: 0.5, flexWrap: "nowrap", overflowX: "auto" }}>
           {links.map((link) => (
             <Button
               key={link.to}
               component={NavLink}
               to={link.to}
               color="inherit"
-              sx={{ "&.active": { fontWeight: "bold" } }}
+              size="small"
+              sx={{
+                "&.active": { fontWeight: "bold" },
+                whiteSpace: "nowrap",
+                px: { xs: 1, sm: 2 },
+              }}
             >
               {link.label}
             </Button>
           ))}
           <Box sx={{ flexGrow: 1 }} />
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
             <Avatar sx={{ width: 32, height: 32, fontSize: 14 }}>
               {initials}
             </Avatar>
-            {user?.username && (
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                {user.username}
-              </Typography>
-            )}
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, display: { xs: "none", sm: "block" } }}
+            >
+              {user?.username}
+            </Typography>
             <Tooltip title="Log out">
               <IconButton onClick={handleLogout} size="small" color="inherit">
                 <LogoutIcon fontSize="small" />
@@ -66,7 +72,7 @@ export default function Layout() {
           </Box>
         </Toolbar>
       </AppBar>
-      <Container component="main" sx={{ py: 3, flexGrow: 1 }}>
+      <Container component="main" sx={{ py: 3, flexGrow: 1, px: { xs: 2, sm: 3 } }}>
         <Outlet />
       </Container>
     </Box>

@@ -3,11 +3,12 @@ import {
   Box,
   Button,
   Container,
+  Link as MuiLink,
   TextField,
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { register } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
 
@@ -15,8 +16,8 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -34,48 +35,66 @@ export default function RegisterPage() {
       setLoading(false);
     }
   }
+
   return (
     <Container maxWidth="xs">
       <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{ mt: 8, display: "flex", flexDirection: "column", gap: 2 }}
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          py: 4,
+        }}
       >
-        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-          Create Account
-        </Typography>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+        >
+          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+            Create Account
+          </Typography>
 
-        {error && <Alert severity="error">{error}</Alert>}
+          {error && <Alert severity="error">{error}</Alert>}
 
-        <TextField
-          label="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          fullWidth
-          required
-        />
+          <TextField
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            fullWidth
+            required
+          />
 
-        <TextField
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          fullWidth
-          required
-        />
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            fullWidth
+            required
+          />
 
-        <TextField
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          fullWidth
-          required
-        />
+          <TextField
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            fullWidth
+            required
+          />
 
-        <Button type="submit" variant="contained" fullWidth disabled={loading}>
-          {loading ? "Creating account..." : "Create Account"}
-        </Button>
+          <Button type="submit" variant="contained" fullWidth disabled={loading}>
+            {loading ? "Creating account..." : "Create Account"}
+          </Button>
+
+          <Typography variant="body2" sx={{ textAlign: "center" }}>
+            Already have an account?{" "}
+            <MuiLink component={RouterLink} to="/login">
+              Log in
+            </MuiLink>
+          </Typography>
+        </Box>
       </Box>
     </Container>
   );
