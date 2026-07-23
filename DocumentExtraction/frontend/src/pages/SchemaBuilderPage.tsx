@@ -4,95 +4,28 @@ import {
   Button,
   Chip,
   Container,
-  Drawer,
   IconButton,
   Paper,
   Stack,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import SchemaBuilder, { type ColumnDraft } from "../components/SchemaBuilder";
+import { useNavigate } from "react-router-dom";
+import SchemaBuilder from "../components/SchemaBuilder";
 import { useSchemaStore } from "../stores/schemaStore";
 import type { DocumentSchema } from "../types";
 
-const emptyColumn: ColumnDraft = {
-  name: "",
-  description: "",
-  data_type: "text",
-  enum_options: "",
-  required: false,
-};
-
 export default function SchemaBuilderPage() {
-  const [schemaName, setSchemaName] = useState("");
-  const [schemaDescription, setSchemaDescription] = useState("");
-  const [columns, setColumns] = useState<ColumnDraft[]>([{ ...emptyColumn }]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const addSchema = useSchemaStore((s) => s.addSchema);
+  const navigate = useNavigate();
   const fetchSchema = useSchemaStore((s) => s.fetchSchema);
   const schemaArray = useSchemaStore((s) => s.schemas) as DocumentSchema[];
   const deleteSchema = useSchemaStore((s) => s.removeSchema);
+
   useEffect(() => {
     fetchSchema();
   }, []);
 
-  console.log(schemaArray);
-  function resetForm() {
-    setSchemaName("");
-    setSchemaDescription("");
-    setColumns([{ ...emptyColumn }]);
-    setError("");
-  }
-
-  function closeDrawer() {
-    setDrawerOpen(false);
-    resetForm();
-  }
-
-  async function handleSubmit() {
-    if (!schemaName.trim()) {
-      setError("Schema name is required");
-      return;
-    }
-    setError("");
-    setLoading(true);
-    try {
-      const payload = columns.map((col) => ({
-        ...col,
-        enum_options:
-          col.data_type === "enum"
-            ? col.enum_options
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean)
-            : null,
-      }));
-      await addSchema(schemaName, schemaDescription, payload);
-      await fetchSchema();
-      closeDrawer();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create schema");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function updateColumn(index: number, patch: Partial<ColumnDraft>) {
-    setColumns((prev) =>
-      prev.map((col, i) => (i === index ? { ...col, ...patch } : col)),
-    );
-  }
-
-  function addColumn() {
-    setColumns((prev) => [...prev, { ...emptyColumn }]);
-  }
-
-  function removeColumn(index: number) {
-    setColumns((prev) => prev.filter((_, i) => i !== index));
-  }
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Box
@@ -123,6 +56,9 @@ export default function SchemaBuilderPage() {
             <Paper
               key={schema.id}
               variant="outlined"
+              onClick={() => {
+                navigate(`/schemas/${schema.id}`);
+              }}
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -166,27 +102,12 @@ export default function SchemaBuilderPage() {
           ))}
         </Stack>
       )}
-      <Drawer
-        anchor="right"
+
+      <SchemaBuilder
         open={drawerOpen}
-        onClose={closeDrawer}
-        slotProps={{ paper: { sx: { width: { xs: "100%", sm: 560 } } } }}
-      >
-        <SchemaBuilder
-          schemaName={schemaName}
-          setSchemaName={setSchemaName}
-          schemaDescription={schemaDescription}
-          setSchemaDescription={setSchemaDescription}
-          columns={columns}
-          updateColumn={updateColumn}
-          addColumn={addColumn}
-          removeColumn={removeColumn}
-          error={error}
-          loading={loading}
-          handleSubmit={handleSubmit}
-          onClose={closeDrawer}
-        />
-      </Drawer>
+        onClose={() => setDrawerOpen(false)}
+        onSuccess={fetchSchema}
+      />
     </Container>
   );
 }

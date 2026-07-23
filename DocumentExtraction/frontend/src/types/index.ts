@@ -19,6 +19,15 @@ export interface DocumentSchema {
   created_at: string;
   updated_at: string;
 }
+
+export interface SchemaDetail {
+  id: number;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  schemaColumns: SchemaColumn[];
+}
 export interface User {
   id: number;
   username: string;

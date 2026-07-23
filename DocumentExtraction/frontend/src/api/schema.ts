@@ -1,4 +1,4 @@
-import type { DocumentSchema } from "../types";
+import type { DocumentSchema, SchemaDetail } from "../types";
 import { apiFetch } from "./client";
 
 export function createDocumentSchema(
@@ -19,7 +19,7 @@ export function getAllSchemas() {
 }
 
 export function getSchema(id: number) {
-  return apiFetch<DocumentSchema>(`/schemas/${id}`);
+  return apiFetch<SchemaDetail>(`/schemas/${id}`);
 }
 
 export function updateSchema(

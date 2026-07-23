@@ -11,6 +11,7 @@ import LoginPage from "../pages/LoginPage";
 import QueryPage from "../pages/QueryPage";
 import RegisterPage from "../pages/RegisterPage";
 import SchemaBuilderPage from "../pages/SchemaBuilderPage";
+import SchemaDetailPage from "../pages/SchemaDetailPage";
 import UploadPage from "../pages/UploadPage";
 import { useAuthStore } from "../stores/authStore";
 
@@ -27,6 +28,7 @@ function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/schemas" element={<SchemaBuilderPage />} />
+            <Route path="/schemas/:id" element={<SchemaDetailPage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/documents" element={<DocumentGridPage />} />
             <Route path="/query" element={<QueryPage />} />
