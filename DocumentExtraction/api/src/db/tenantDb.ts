@@ -38,12 +38,15 @@ export function openTenantDB(tenantDBPath: string) {
         CREATE TABLE IF NOT EXISTS documents (
             id           INTEGER PRIMARY KEY AUTOINCREMENT,
             schema_id    INTEGER NOT NULL REFERENCES document_schemas(id) ON DELETE CASCADE,
-            filename     TEXT NOT NULL,
+            filename     TEXT NOT NULL,          -- original display name
             mime_type    TEXT NOT NULL,
-            storage_path TEXT NOT NULL, 
-            status       TEXT NOT NULL,
+            storage_path TEXT NOT NULL,          -- server-generated, never client input
+            size_bytes   INTEGER NOT NULL,
+            status       TEXT NOT NULL DEFAULT 'uploaded'
+                        CHECK(status IN ('uploaded','processing','extracted','failed')),
             uploaded_at  TEXT NOT NULL DEFAULT (datetime('now'))
         );
+        CREATE INDEX IF NOT EXISTS idx_documents_schema ON documents(schema_id);
     `,
   );
   return db;
@@ -68,4 +71,8 @@ export function tenantUploadDir(userId: number): string {
     fs.mkdirSync(dir, { recursive: true });
   }
   return dir;
+}
+
+export function getTenantDb(userId: number) {
+  return openTenantDB(tenantDBPath(userId));
 }

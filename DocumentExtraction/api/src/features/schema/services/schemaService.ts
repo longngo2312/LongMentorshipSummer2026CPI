@@ -1,7 +1,11 @@
-import type { CreateSchemaBody, SchemaColumnInput, UpdateSchemaBody } from "../dtos/schema.dto.js";
+import { getTenantDb } from "../../../db/tenantDb.js";
+import type {
+  CreateSchemaBody,
+  SchemaColumnInput,
+  UpdateSchemaBody,
+} from "../dtos/schema.dto.js";
 import type { DocumentSchema, SchemaColumns } from "../models/schema.model.js";
 import { SCHEMA_SQL } from "../sqls/schema.sql.js";
-import { getTenantDB } from "../utils/tenantDb.util.js";
 
 export class SchemaError extends Error {
   constructor(
@@ -13,7 +17,7 @@ export class SchemaError extends Error {
 }
 
 function insertColumns(
-  db: ReturnType<typeof getTenantDB>,
+  db: ReturnType<typeof getTenantDb>,
   schemaId: number,
   columns: SchemaColumnInput[],
 ) {
@@ -32,15 +36,15 @@ function insertColumns(
 }
 
 export function getAllSchemas(userId: number) {
-  const db = getTenantDB(userId);
+  const db = getTenantDb(userId);
   return db.prepare(SCHEMA_SQL.listWithColumnCount).all();
 }
 
 export function getSchemaDetail(userId: number, schemaId: string) {
-  const db = getTenantDB(userId);
-  const schema = db
-    .prepare(SCHEMA_SQL.getById)
-    .get(schemaId) as DocumentSchema | undefined;
+  const db = getTenantDb(userId);
+  const schema = db.prepare(SCHEMA_SQL.getById).get(schemaId) as
+    | DocumentSchema
+    | undefined;
 
   if (!schema) {
     throw new SchemaError(404, "Schema Not Found");
@@ -54,7 +58,7 @@ export function getSchemaDetail(userId: number, schemaId: string) {
 }
 
 export function createSchema(userId: number, body: CreateSchemaBody) {
-  const db = getTenantDB(userId);
+  const db = getTenantDb(userId);
   const insertSchema = db.prepare(SCHEMA_SQL.insertSchema);
 
   const schemaId = db.transaction(() => {
@@ -72,7 +76,7 @@ export function updateSchema(
   schemaId: string,
   body: UpdateSchemaBody,
 ) {
-  const db = getTenantDB(userId);
+  const db = getTenantDb(userId);
 
   const existing = db.prepare(SCHEMA_SQL.getById).get(schemaId);
   if (!existing) {
@@ -91,9 +95,7 @@ export function updateSchema(
     }
   })();
 
-  const schema = db
-    .prepare(SCHEMA_SQL.getById)
-    .get(schemaId) as DocumentSchema;
+  const schema = db.prepare(SCHEMA_SQL.getById).get(schemaId) as DocumentSchema;
   const columns = db
     .prepare(SCHEMA_SQL.getColumnsBySchemaIdOrdered)
     .all(schemaId) as SchemaColumns[];
@@ -102,7 +104,7 @@ export function updateSchema(
 }
 
 export function deleteSchema(userId: number, schemaId: string) {
-  const db = getTenantDB(userId);
+  const db = getTenantDb(userId);
   const existing = db.prepare(SCHEMA_SQL.getById).get(schemaId);
   if (!existing) {
     throw new SchemaError(404, "Schema not found");

@@ -1,20 +1,28 @@
-import { Router } from "express";
-import multer from "multer";
-import path from "path";
-import { uploadDocuments } from "../features/document/controllers/uploadDocuments.js";
+import { NextFunction, Request, Response, Router } from "express";
+import { MulterError } from "multer";
+import { uploadDocument } from "../features/document/controllers/documentController.js";
+import { uploadMiddleware } from "../features/document/utils/storage.util.js";
 import { requireAuth } from "../middleware/auth.js";
+
 const router = Router();
 
-const upload = multer({
-  dest: path.join(process.cwd(), "storage", "raw_docs"),
-});
 router.use(requireAuth);
-router.post("/upload", upload.single("file"), uploadDocuments);
-router.get("/", listDocuments);
-router.get("/:id", getDocument);
-router.get("/:id/file", downloadDocument);
-router.get("/:id/events", jobUpdates);
-router.post("/:id/reextract", reRunExtraction);
-router.delete("/:id", deleteDocuments);
+
+router.post("/", uploadMiddleware.single("file"), uploadDocument);
+
+// Multer rejects (e.g. the size limit) surface as thrown errors rather than as
+// a normal response, so without this handler they'd come back as a generic 500.
+router.use(
+  (error: unknown, _req: Request, res: Response, next: NextFunction) => {
+    if (error instanceof MulterError) {
+      const message =
+        error.code === "LIMIT_FILE_SIZE"
+          ? "File is too large (max 25MB)"
+          : error.message;
+      return res.status(400).json({ error: message });
+    }
+    next(error);
+  },
+);
 
 export default router;
