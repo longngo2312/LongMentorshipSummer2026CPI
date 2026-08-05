@@ -52,13 +52,7 @@ export function createDocument(
   return { document, jobId };
 }
 
-export function listDocuments(userId: number) {
-  try {
-    const db = getTenantDb(userId);
-    const docs = db
-      .prepare(DOCUMENT_SQL.getDocuments)
-      .all() as DocumentListItem[];
-  } catch (error) {
-    throw error;
-  }
+export function listDocuments(userId: number): DocumentListItem[] {
+  const db = getTenantDb(userId);
+  return db.prepare(DOCUMENT_SQL.getDocuments).all() as DocumentListItem[];
 }

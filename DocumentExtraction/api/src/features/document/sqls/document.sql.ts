@@ -2,7 +2,7 @@ export const DOCUMENT_SQL = {
   schemaExists: `SELECT id FROM document_schemas WHERE id = ?;`,
 
   getDocuments: `
-    SELECT documents.*, document_schema.name AS schema_name 
+    SELECT documents.*, document_schemas.name AS schema_name 
       FROM documents 
       JOIN document_schemas ON document_schemas.id = documents.schema_id 
       ORDER BY documents.uploaded_at DESC, documents.id DESC;

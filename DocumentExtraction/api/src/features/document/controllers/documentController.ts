@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import type { ListQuery, UploadBody } from "../dtos/document.dto.js";
+import type { UploadBody } from "../dtos/document.dto.js";
 import * as documentService from "../services/documents.services.js";
 import { DocumentError } from "../utils/error.utils.js";
 import { safeUnlink } from "../utils/storage.util.js";
@@ -37,17 +37,15 @@ export function uploadDocument(
   }
 }
 
-export function getDocuments(
-  req: Request<{}, {}, {}, ListQuery>,
-  res: Response,
-) {
+export function getDocuments(req: Request, res: Response) {
   const userId = req.user?.userId;
   if (!userId) {
-    return res.status(401).json({ error: "User authenticated required" });
+    return res.status(401).json({ error: "User authentication required" });
   }
   try {
     res.json(documentService.listDocuments(userId));
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "Failed to list documents" });
   }
 }
