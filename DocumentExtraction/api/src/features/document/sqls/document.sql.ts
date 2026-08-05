@@ -13,7 +13,17 @@ export const DOCUMENT_SQL = {
     VALUES (?, ?, ?, ?, ?, 'uploaded');
   `,
 
+  // Internal lookups (read-back after insert, delete) — no join needed.
   getById: `SELECT * FROM documents WHERE id = ?;`,
+
+  // Client-facing detail: same shape as getDocuments so the frontend sees
+  // identical fields whether it reads a row from the list or on its own.
+  getDocumentById: `
+    SELECT documents.*, document_schemas.name AS schema_name
+      FROM documents
+      JOIN document_schemas ON document_schemas.id = documents.schema_id
+      WHERE documents.id = ?;
+  `,
 
   deleteById: `DELETE FROM documents WHERE id = ?;`,
 };

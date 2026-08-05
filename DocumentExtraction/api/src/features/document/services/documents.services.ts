@@ -56,3 +56,13 @@ export function listDocuments(userId: number): DocumentListItem[] {
   const db = getTenantDb(userId);
   return db.prepare(DOCUMENT_SQL.getDocuments).all() as DocumentListItem[];
 }
+
+export function getDocById(
+  userId: number,
+  id: number,
+): DocumentListItem | undefined {
+  const db = getTenantDb(userId);
+  return db.prepare(DOCUMENT_SQL.getDocumentById).get(id) as
+    | DocumentListItem
+    | undefined;
+}

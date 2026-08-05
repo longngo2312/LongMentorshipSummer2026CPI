@@ -14,3 +14,7 @@ export interface UploadResponse {
   document: DocumentRecord;
   jobId: number;
 }
+
+export interface getDocument {
+  document_id: number;
+}

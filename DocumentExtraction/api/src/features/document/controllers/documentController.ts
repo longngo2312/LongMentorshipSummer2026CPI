@@ -37,7 +37,7 @@ export function uploadDocument(
   }
 }
 
-export function getDocuments(req: Request, res: Response) {
+export function listDocuments(req: Request, res: Response) {
   const userId = req.user?.userId;
   if (!userId) {
     return res.status(401).json({ error: "User authentication required" });
@@ -47,5 +47,31 @@ export function getDocuments(req: Request, res: Response) {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Failed to list documents" });
+  }
+}
+
+//get(/:id) single document
+export function getDocument(req: Request<{ id: string }>, res: Response) {
+  const userId = req.user?.userId;
+  if (!userId) {
+    return res.status(401).json({ error: "User authentication required" });
+  }
+
+  const docId = Number(req.params.id);
+  if (!Number.isInteger(docId) || docId <= 0) {
+    return res.status(400).json({ error: "A valid document id is required" });
+  }
+
+  try {
+    const result = documentService.getDocById(userId, docId);
+    // .get() returns undefined when nothing matches — without this the response
+    // would be res.json(undefined), which Express turns into a 500.
+    if (!result) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed getting the document" });
   }
 }
