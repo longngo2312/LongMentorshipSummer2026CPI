@@ -19,7 +19,22 @@ adminDB.exec(
             tenant_db_path  TEXT        NOT NULL        DEFAULT '',
             created_at      TEXT        NOT NULL        DEFAULT (datetime('now')),
             last_login_at   TEXT 
-        )
+        );
+
+        CREATE table IF NOT EXISTS extraction_jobs (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            document_id  INTEGER NOT NULL,      
+            status       TEXT NOT NULL DEFAULT 'queued'
+                        CHECK(status IN ('queued','running','done','failed')),
+            attempts     INTEGER NOT NULL DEFAULT 0,
+            max_attempts INTEGER NOT NULL DEFAULT 3,
+            error        TEXT,
+            started_at   TEXT,
+            finished_at  TEXT,
+            created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_jobs_status ON extraction_jobs(status, id);
     `,
 );
 
