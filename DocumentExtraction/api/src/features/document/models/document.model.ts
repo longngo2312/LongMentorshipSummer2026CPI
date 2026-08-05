@@ -1,3 +1,4 @@
+//database record
 export interface DocumentRecord {
   id: number;
   schema_id: number;
@@ -9,6 +10,7 @@ export interface DocumentRecord {
   uploaded_at: string;
 }
 
+//listDocuments
 export interface DocumentListItem extends DocumentRecord {
   schema_name: string;
 }

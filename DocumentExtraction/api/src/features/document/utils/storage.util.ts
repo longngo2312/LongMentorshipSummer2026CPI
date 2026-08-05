@@ -17,6 +17,19 @@ export function userUploadDir(userId: number): string {
   return dir;
 }
 
+/**
+ * Absolute path -> the portable value we persist, e.g. "user_4/c8ec….pdf".
+ * Forward slashes so a DB written on Windows still resolves elsewhere.
+ */
+export function toStoragePath(absolutePath: string): string {
+  return path.relative(UPLOADS_ROOT, absolutePath).split(path.sep).join("/");
+}
+
+/** Persisted value -> absolute path on this machine. */
+export function resolveStoragePath(storagePath: string): string {
+  return path.join(UPLOADS_ROOT, storagePath);
+}
+
 /** Idempotent — deleting an already-missing file is not an error. */
 export function safeUnlink(storagePath: string) {
   try {

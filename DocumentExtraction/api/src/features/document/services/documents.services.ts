@@ -1,10 +1,13 @@
 import adminDB from "../../../db/adminDB.js";
 import { getTenantDb } from "../../../db/tenantDb.js";
 import type { UploadResponse } from "../dtos/document.dto.js";
-import type { DocumentRecord } from "../models/document.model.js";
+import type {
+  DocumentListItem,
+  DocumentRecord,
+} from "../models/document.model.js";
 import { DOCUMENT_SQL, JOB_SQL } from "../sqls/document.sql.js";
 import { DocumentError } from "../utils/error.utils.js";
-import { safeUnlink } from "../utils/storage.util.js";
+import { safeUnlink, toStoragePath } from "../utils/storage.util.js";
 
 export function createDocument(
   userId: number,
@@ -23,7 +26,13 @@ export function createDocument(
 
   const { lastInsertRowid } = db
     .prepare(DOCUMENT_SQL.insertDocument)
-    .run(schemaId, file.originalname, file.mimetype, file.path, file.size);
+    .run(
+      schemaId,
+      file.originalname,
+      file.mimetype,
+      toStoragePath(file.path),
+      file.size,
+    );
   const documentId = Number(lastInsertRowid);
 
   let jobId: number;
@@ -41,4 +50,15 @@ export function createDocument(
     .get(documentId) as DocumentRecord;
 
   return { document, jobId };
+}
+
+export function listDocuments(userId: number) {
+  try {
+    const db = getTenantDb(userId);
+    const docs = db
+      .prepare(DOCUMENT_SQL.getDocuments)
+      .all() as DocumentListItem[];
+  } catch (error) {
+    throw error;
+  }
 }
