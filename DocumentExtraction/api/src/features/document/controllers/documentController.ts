@@ -75,3 +75,28 @@ export function getDocument(req: Request<{ id: string }>, res: Response) {
     res.status(500).json({ error: "Failed getting the document" });
   }
 }
+
+//delete(/:id) remove the document row, its jobs, and its file
+export function deleteDocument(req: Request<{ id: string }>, res: Response) {
+  const userId = req.user?.userId;
+  if (!userId) {
+    return res.status(401).json({ error: "User authentication required" });
+  }
+
+  const docId = Number(req.params.id);
+  if (!Number.isInteger(docId) || docId <= 0) {
+    return res.status(400).json({ error: "A valid document id is required" });
+  }
+
+  try {
+    const deleted = documentService.deleteDocument(userId, docId);
+    if (!deleted) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+    // 204 means no body, so send() rather than json().
+    res.status(204).send();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to delete the document" });
+  }
+}

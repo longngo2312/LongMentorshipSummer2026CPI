@@ -34,4 +34,10 @@ export const JOB_SQL = {
     INSERT INTO extraction_jobs (user_id, document_id, status)
     VALUES (?, ?, 'queued');
   `,
+
+  // document_id is only unique within a tenant — every tenant DB numbers its
+  // documents from 1 — so user_id is what stops this touching another user's jobs.
+  deleteJobsByDocument: `
+    DELETE FROM extraction_jobs WHERE user_id = ? AND document_id = ?;
+  `,
 };

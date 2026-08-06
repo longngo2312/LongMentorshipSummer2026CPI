@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { MulterError } from "multer";
 import {
+  deleteDocument,
   getDocument,
   listDocuments,
   uploadDocument,
@@ -15,6 +16,7 @@ router.use(requireAuth);
 router.post("/", uploadMiddleware.single("file"), uploadDocument);
 router.get("/", listDocuments);
 router.get("/:id", getDocument);
+router.delete("/:id", deleteDocument);
 
 // Multer rejects (e.g. the size limit) surface as thrown errors rather than as
 // a normal response, so without this handler they'd come back as a generic 500.
