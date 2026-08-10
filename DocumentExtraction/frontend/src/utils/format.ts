@@ -15,3 +15,12 @@ export function formatBytes(bytes: number): string {
   const decimals = unit === 0 ? 0 : 1;
   return `${value.toFixed(decimals)} ${UNITS[unit]}`;
 }
+
+/**
+ * "2026-08-10 19:10:03" (SQLite, UTC) -> a local-time display string.
+ * The trailing Z is what stops the browser reading the timestamp as local.
+ */
+export function formatDayTime(value: string): string {
+  const iso = value.replace(" ", "T") + "Z";
+  return new Date(iso).toLocaleString();
+}
