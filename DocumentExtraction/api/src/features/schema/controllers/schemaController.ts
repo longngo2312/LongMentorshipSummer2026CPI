@@ -10,7 +10,7 @@ export function getAllSchemas(req: Request, res: Response) {
     res.json(schemas);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Failed to fetch schemas" });
+    res.status(500).json({ error: "Failed to fetch schemas" });
   }
 }
 

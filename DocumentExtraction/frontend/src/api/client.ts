@@ -20,10 +20,15 @@ export async function apiFetch<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
+  const isFormData = init.body instanceof FormData;
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData
+        ? {}
+        : {
+            "Content-Type": "application/json",
+          }) /* Handle both json data and upload data */,
       ...authHeaders(),
       ...init.headers,
     },
@@ -31,7 +36,11 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new ApiError(body?.error ?? res.statusText, res.status);
+    // Most routes return { error }; auth returns { success:false, message }.
+    throw new ApiError(
+      body?.error ?? body?.message ?? res.statusText,
+      res.status,
+    );
   }
 
   if (res.status === 204) return undefined as T;
