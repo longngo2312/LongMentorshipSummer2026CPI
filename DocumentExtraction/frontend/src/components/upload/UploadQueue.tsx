@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Typography } from "@mui/material";
-import type { UploadItem } from "../types";
+import type { UploadItem } from "../../types";
 import UploadQueueItem from "./UploadQueueItem";
 
 interface UploadQueueProps {

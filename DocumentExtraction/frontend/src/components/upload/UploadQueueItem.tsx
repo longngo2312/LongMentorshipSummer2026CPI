@@ -9,8 +9,8 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import type { UploadItem } from "../types";
-import { formatBytes } from "../utils/format";
+import type { UploadItem } from "../../types";
+import { formatBytes } from "../../utils/format";
 
 const STATUS_CHIP = {
   pending: { label: "Pending", color: "default" },

@@ -1,6 +1,6 @@
 import { Box, Container, Typography } from "@mui/material";
 import { useEffect } from "react";
-import RenderDocuments from "../components/RenderDocuments";
+import RenderDocuments from "../components/document/RenderDocuments";
 import { useDocumentStore } from "../stores/documentStore";
 export default function DocumentGridPage() {
   const documents = useDocumentStore((s) => s.documents);

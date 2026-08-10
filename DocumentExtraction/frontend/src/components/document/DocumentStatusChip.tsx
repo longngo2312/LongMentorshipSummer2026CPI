@@ -1,5 +1,5 @@
 import { Chip } from "@mui/material";
-import type { DocumentStatus } from "../types";
+import type { DocumentStatus } from "../../types";
 
 const STATUS_CHIP = {
   uploaded: { label: "Uploaded", color: "default" },

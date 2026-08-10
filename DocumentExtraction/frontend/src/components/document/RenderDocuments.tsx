@@ -14,8 +14,8 @@ import {
   Typography,
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
-import type { DocumentListItem } from "../types";
-import { formatBytes, formatDayTime } from "../utils/format";
+import type { DocumentListItem } from "../../types";
+import { formatBytes, formatDayTime } from "../../utils/format";
 import DocumentStatusChip from "./DocumentStatusChip";
 
 // Size and Uploaded are the least important columns, so they collapse first.

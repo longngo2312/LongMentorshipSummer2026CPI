@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import type { DocumentSchema } from "../types";
+import type { DocumentSchema } from "../../types";
 
 interface RenderSchemasProps {
   schemas: DocumentSchema[];

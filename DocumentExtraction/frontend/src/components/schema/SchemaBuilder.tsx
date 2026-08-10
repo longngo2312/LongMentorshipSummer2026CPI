@@ -17,9 +17,9 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import { updateSchema } from "../api/schema";
-import { useSchemaStore } from "../stores/schemaStore";
-import type { ColumnDataType, SchemaColumn } from "../types";
+import { updateSchema } from "../../api/schema";
+import { useSchemaStore } from "../../stores/schemaStore";
+import type { ColumnDataType, SchemaColumn } from "../../types";
 
 export interface ColumnDraft {
   name: string;

@@ -8,8 +8,8 @@ import {
 } from "@mui/material";
 import { useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { useSchemaStore } from "../stores/schemaStore";
-import type { DocumentSchema } from "../types";
+import { useSchemaStore } from "../../stores/schemaStore";
+import type { DocumentSchema } from "../../types";
 interface SchemaSelectProps {
   value: number | "";
   onChange: (schema_id: number) => void;

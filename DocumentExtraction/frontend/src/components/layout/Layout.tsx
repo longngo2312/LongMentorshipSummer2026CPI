@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
+import { useAuthStore } from "../../stores/authStore";
 
 const links = [
   { to: "/schemas", label: "Schemas" },
@@ -25,8 +25,9 @@ export default function Layout() {
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    // Await so the refresh token is revoked before we leave the page.
+    await logout();
     navigate("/login");
   }
 

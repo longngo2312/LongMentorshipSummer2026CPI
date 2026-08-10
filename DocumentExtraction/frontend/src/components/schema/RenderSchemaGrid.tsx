@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import type { SchemaDetail } from "../types";
+import type { SchemaDetail } from "../../types";
 
 function parseEnumOptions(raw: unknown): string {
   if (!raw) return "—";
