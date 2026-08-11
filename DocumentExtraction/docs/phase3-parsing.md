@@ -354,19 +354,19 @@ const OCR_PAGE_CAP = 20;
 const OCR_SCALE = 3;
 ```
 
-- [ ] Read the file into memory once. Build one `PDFParse`.
-- [ ] `await parser.getText({ pageJoiner: "" })` → text for every page.
-- [ ] Sort pages into two lists using `hasUsableText`.
-- [ ] **If nothing needs OCR, stop here** and return `method: "pdf-text"`. This
+- [x] Read the file into memory once. Build one `PDFParse`.
+- [x] `await parser.getText({ pageJoiner: "" })` → text for every page.
+- [x] Sort pages into two lists using `hasUsableText`.
+- [x] **If nothing needs OCR, stop here** and return `method: "pdf-text"`. This
       is the common case and it should be the fast one.
-- [ ] Otherwise, take the first `OCR_PAGE_CAP` pages that need OCR. If there are
+- [x] Otherwise, take the first `OCR_PAGE_CAP` pages that need OCR. If there are
       more, add a warning saying how many you skipped.
-- [ ] OCR them **one at a time**, in a plain `for` loop: `getScreenshot` for that
+- [x] OCR them **one at a time**, in a plain `for` loop: `getScreenshot` for that
       page, then `ocrImage`.
-- [ ] Set `method` — all text → `pdf-text`, all OCR → `pdf-ocr`, mixed →
+- [x] Set `method` — all text → `pdf-text`, all OCR → `pdf-ocr`, mixed →
       `pdf-hybrid`.
-- [ ] Put `parser.destroy()` in a `finally`.
-- [ ] If the whole document produced zero characters, throw
+- [x] Put `parser.destroy()` in a `finally`.
+- [x] If the whole document produced zero characters, throw
       `ParsingError("empty", …)`.
 
 **Why one at a time and not `Promise.all`:** each rendered page is a
@@ -393,9 +393,9 @@ Encrypted PDFs throw from `getText()`. Catch that and rethrow it as
 
 **What it is:** the easy half of the OCR path. Someone uploaded a PNG or a photo.
 
-- [ ] Read the file, hand it to `ocrImage`, return it as a single page with
+- [x] Read the file, hand it to `ocrImage`, return it as a single page with
       `method: "image-ocr"`.
-- [ ] If OCR returns nothing, throw `ParsingError("empty", …)` — a photo of a
+- [x] If OCR returns nothing, throw `ParsingError("empty", …)` — a photo of a
       whiteboard genuinely can produce zero text.
 
 ## Stage 7 — `parsers/office.parser.ts`
@@ -409,7 +409,7 @@ const text = await getTextExtractor().extractText({
 });
 ```
 
-- [ ] Return it as a single page, `method: "office"`.
+- [] Return it as a single page, `method: "office"`.
 
 **Note on spreadsheets:** the library dumps each sheet as YAML rather than a
 table. It looks odd, but it keeps each value attached to its row and column
@@ -424,9 +424,9 @@ which came from the user's browser.
 
 **What it is:** plain text files. The trivial one.
 
-- [ ] `fs.readFileSync(path, "utf8")`, normalize, return one page,
+- [x] `fs.readFileSync(path, "utf8")`, normalize, return one page,
       `method: "plain"`.
-- [ ] Covers `.txt`, `.csv`, `.md`.
+- [x] Covers `.txt`, `.csv`, `.md`.
 
 **Why CSV isn't parsed properly:** an LLM reads raw comma-separated text
 perfectly well. A real CSV parser would give you rows and columns you'd only

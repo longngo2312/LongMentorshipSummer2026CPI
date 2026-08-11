@@ -3,7 +3,10 @@ import { createWorker } from "tesseract.js";
 let workerPromise: ReturnType<typeof createWorker> | null = null;
 function getWorker() {
   if (!workerPromise) {
-    workerPromise = createWorker("eng");
+    //Without errorHandler, tesseract.js rethrows worker failures onto the process
+    //and takes the whole API down — an unreadable image is enough to do it.
+    //recognize() rejects regardless, so callers still see the error.
+    workerPromise = createWorker("eng", undefined, { errorHandler: () => {} });
   }
   return workerPromise;
 }
