@@ -26,6 +26,8 @@ export const DOCUMENT_SQL = {
   `,
 
   deleteById: `DELETE FROM documents WHERE id = ?;`,
+
+  updateStatus: `UPDATE documents SET status = ? WHERE id = ?;`,
 };
 
 // Lives in the admin DB, not the tenant DB.

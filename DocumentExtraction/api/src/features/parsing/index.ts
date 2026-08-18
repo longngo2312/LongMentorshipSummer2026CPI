@@ -2,7 +2,7 @@ import path from "path";
 import { selectParser } from "./router.js";
 import type { ParsedDocument } from "./types.js";
 
-export async function extractText(
+export async function parsedDocument(
   filePath: string,
   mimeType?: string,
 ): Promise<ParsedDocument> {

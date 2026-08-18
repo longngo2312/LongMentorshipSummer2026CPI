@@ -1,5 +1,6 @@
 import adminDB from "../../../db/adminDB.js";
 import { getTenantDb } from "../../../db/tenantDb.js";
+import { notifyWorker } from "../../extraction/worker.js";
 import type { UploadResponse } from "../dtos/document.dto.js";
 import type {
   DocumentListItem,
@@ -37,8 +38,8 @@ export function createDocument(
       toStoragePath(file.path),
       file.size,
     );
-  const documentId = Number(lastInsertRowid);
 
+  const documentId = Number(lastInsertRowid);
   let jobId: number;
   try {
     const job = adminDB.prepare(JOB_SQL.insertJob).run(userId, documentId);
@@ -53,6 +54,7 @@ export function createDocument(
     .prepare(DOCUMENT_SQL.getById)
     .get(documentId) as DocumentRecord;
 
+  notifyWorker();
   return { document, jobId };
 }
 
