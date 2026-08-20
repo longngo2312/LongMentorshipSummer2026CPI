@@ -56,6 +56,20 @@ export function openTenantDB(tenantDBPath: string) {
             method       TEXT NOT NULL,
             parsed_at    TEXT NOT NULL DEFAULT (datetime('now'))
         );
+
+        CREATE TABLE IF NOT EXISTS extractedDocumentText(
+          id             INTEGER PRIMARY KEY AUTOINCREMENT,
+          document_id    INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+          schema_id      INTEGER NOT NULL REFERENCES document_schemas(id) ON DELETE CASCADE,
+          value_text     TEXT NOT NULL,
+          value_number   REAL NOT NULL, 
+          value_date     TEXT,
+          confidence     REAL,
+          source_snippet TEXT,
+          UNIQUE(document_id, schema_id) 
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_values_document ON extractedDocumentText(document_id)
     `, //pages_json` is `JSON.stringify(result.pages)
   );
   return db;

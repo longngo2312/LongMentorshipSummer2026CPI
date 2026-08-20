@@ -7,3 +7,20 @@ export interface DocumentText {
   method: string;
   parsed_at: string;
 }
+
+export interface ExtractedText {
+  id: number;
+  document_id: number;
+  schema_id: number;
+  value_text: string;
+  value_number: number;
+  value_date: string;
+  confidence: number;
+  source_snippet: string;
+}
+
+export interface SchemaJson {
+  schema: Record<string, unknown>;
+  keyToColumnId: Map<string, number>;
+  fieldLines: string[];
+}
