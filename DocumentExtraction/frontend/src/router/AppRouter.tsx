@@ -5,7 +5,7 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
-import Layout from "../components/Layout";
+import Layout from "../components/layout/Layout";
 import DocumentGridPage from "../pages/DocumentGridPage";
 import LoginPage from "../pages/LoginPage";
 import QueryPage from "../pages/QueryPage";

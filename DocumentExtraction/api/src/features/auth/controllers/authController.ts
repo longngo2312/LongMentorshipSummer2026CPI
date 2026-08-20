@@ -1,7 +1,30 @@
 import { Request, Response } from "express";
 import type { LoginBody, RegisterBody } from "../dtos/auth.dto.js";
-import { AuthError, loginUser, registerUser } from "../services/authService.js";
+import {
+  AuthError,
+  loginUser,
+  refreshSession,
+  registerUser,
+  revokeSession,
+} from "../services/authService.js";
+import {
+  clearRefreshCookie,
+  REFRESH_COOKIE,
+  setRefreshCookie,
+} from "../utils/token.util.js";
 import { isValidEmail, isValidPassword } from "../utils/validation.util.js";
+
+function handleAuthError(error: unknown, res: Response) {
+  if (error instanceof AuthError) {
+    return res
+      .status(error.status)
+      .json({ success: false, message: error.message });
+  }
+  console.error(error);
+  return res
+    .status(500)
+    .json({ success: false, message: "Internal server error." });
+}
 
 export async function register(
   req: Request<{}, {}, RegisterBody>,
@@ -33,18 +56,11 @@ export async function register(
       });
     }
 
-    const result = await registerUser(req.body);
-    return res.status(201).json(result);
+    const session = await registerUser(req.body);
+    setRefreshCookie(res, session.refreshToken, session.refreshMaxAgeMs);
+    return res.status(201).json(session.response);
   } catch (error) {
-    if (error instanceof AuthError) {
-      return res
-        .status(error.status)
-        .json({ success: false, message: error.message });
-    }
-    console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error." });
+    return handleAuthError(error, res);
   }
 }
 
@@ -59,17 +75,41 @@ export async function login(req: Request<{}, {}, LoginBody>, res: Response) {
       });
     }
 
-    const result = await loginUser(req.body);
-    return res.json(result);
+    const session = await loginUser(req.body);
+    setRefreshCookie(res, session.refreshToken, session.refreshMaxAgeMs);
+    return res.json(session.response);
   } catch (error) {
-    if (error instanceof AuthError) {
-      return res
-        .status(error.status)
-        .json({ success: false, message: error.message });
-    }
-    console.error(error);
+    return handleAuthError(error, res);
+  }
+}
+
+/** Swaps the refresh cookie for a new access token, rotating the cookie. */
+export function refresh(req: Request, res: Response) {
+  const presented = req.cookies?.[REFRESH_COOKIE] as string | undefined;
+  if (!presented) {
     return res
-      .status(500)
-      .json({ success: false, message: "Internal server error." });
+      .status(401)
+      .json({ success: false, message: "No session cookie." });
+  }
+
+  try {
+    const result = refreshSession(presented);
+    setRefreshCookie(res, result.refreshToken, result.refreshMaxAgeMs);
+    return res.json({ success: true, token: result.token });
+  } catch (error) {
+    // Any failure here means the session is unusable — drop the cookie so the
+    // browser stops replaying a token that will never work again.
+    clearRefreshCookie(res);
+    return handleAuthError(error, res);
+  }
+}
+
+export function logout(req: Request, res: Response) {
+  try {
+    revokeSession(req.cookies?.[REFRESH_COOKIE] as string | undefined);
+    clearRefreshCookie(res);
+    return res.status(204).send();
+  } catch (error) {
+    return handleAuthError(error, res);
   }
 }

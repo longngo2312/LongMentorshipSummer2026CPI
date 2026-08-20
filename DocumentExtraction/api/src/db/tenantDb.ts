@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TENANTS_DIR = path.join(__dirname, "../../db/tenant");
-const UPLOADS_DIR = path.join(TENANTS_DIR, "uploads");
 
 export function openTenantDB(tenantDBPath: string) {
   const db = new Database(tenantDBPath);
@@ -16,11 +15,11 @@ export function openTenantDB(tenantDBPath: string) {
     // Create tables for each users
     `   
         CREATE TABLE IF NOT EXISTS document_schemas (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            name        TEXT NOT NULL UNIQUE,
-            description TEXT,
-            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-            updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            name         TEXT NOT NULL UNIQUE,
+            description  TEXT,
+            created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
         );
 
         CREATE TABLE IF NOT EXISTS schema_columns (
@@ -29,7 +28,7 @@ export function openTenantDB(tenantDBPath: string) {
             name         TEXT NOT NULL,
             description  TEXT,
             data_type    TEXT NOT NULL DEFAULT 'text'
-                        CHECK(data_type IN ('text','number','date','boolean','enum')),
+                         CHECK(data_type IN ('text','number','date','boolean','enum')),
             enum_options TEXT,
             required     INTEGER NOT NULL DEFAULT 0,
             position     INTEGER NOT NULL DEFAULT 0
@@ -43,11 +42,35 @@ export function openTenantDB(tenantDBPath: string) {
             storage_path TEXT NOT NULL,          -- server-generated, never client input
             size_bytes   INTEGER NOT NULL,
             status       TEXT NOT NULL DEFAULT 'uploaded'
-                        CHECK(status IN ('uploaded','processing','extracted','failed')),
+                         CHECK(status IN ('uploaded','processing','extracted','failed')),
             uploaded_at  TEXT NOT NULL DEFAULT (datetime('now'))
         );
         CREATE INDEX IF NOT EXISTS idx_documents_schema ON documents(schema_id);
-    `,
+
+        CREATE TABLE IF NOT EXISTS parsedDocumentText (
+            document_id  INTEGER NOT NULL PRIMARY KEY REFERENCES documents(id) ON DELETE CASCADE,
+            text         TEXT NOT NULL,
+            pages_json   TEXT NOT NULL,
+            page_count   INTEGER NOT NULL,
+            char_count   INTEGER NOT NULL, 
+            method       TEXT NOT NULL,
+            parsed_at    TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS extractedDocumentText(
+          id             INTEGER PRIMARY KEY AUTOINCREMENT,
+          document_id    INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+          schema_id      INTEGER NOT NULL REFERENCES document_schemas(id) ON DELETE CASCADE,
+          value_text     TEXT NOT NULL,
+          value_number   REAL NOT NULL, 
+          value_date     TEXT,
+          confidence     REAL,
+          source_snippet TEXT,
+          UNIQUE(document_id, schema_id) 
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_values_document ON extractedDocumentText(document_id)
+    `, //pages_json` is `JSON.stringify(result.pages)
   );
   return db;
 }
@@ -63,14 +86,6 @@ export function provisionTenantDB(userId: number): string {
   const dbPath = tenantDBPath(userId);
   openTenantDB(dbPath);
   return dbPath;
-}
-
-export function tenantUploadDir(userId: number): string {
-  const dir = path.join(UPLOADS_DIR, `user_${userId}`);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  return dir;
 }
 
 export function getTenantDb(userId: number) {

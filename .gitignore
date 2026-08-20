@@ -2,3 +2,5 @@ node_modules
 *.sqlite
 .claude
 CLAUDE.md
+*.sqlite-wal
+*.sqlite-shm
