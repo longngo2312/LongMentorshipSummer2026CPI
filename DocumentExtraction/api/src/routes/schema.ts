@@ -5,7 +5,7 @@ import {
   getAllSchemas,
   getSchemaDetails,
   updateSchema,
-} from "../features/schema/controllers/schemaController.js";
+} from "../features/schema/controllers/schema.controller..js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();

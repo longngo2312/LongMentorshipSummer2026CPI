@@ -6,7 +6,7 @@ import {
   refreshSession,
   registerUser,
   revokeSession,
-} from "../services/authService.js";
+} from "../services/auth.service..js";
 import {
   clearRefreshCookie,
   REFRESH_COOKIE,

@@ -5,7 +5,7 @@ import {
   getDocument,
   listDocuments,
   uploadDocument,
-} from "../features/document/controllers/documentController.js";
+} from "../features/document/controllers/document.controller..js";
 import { uploadMiddleware } from "../features/document/utils/storage.util.js";
 import { requireAuth } from "../middleware/auth.js";
 

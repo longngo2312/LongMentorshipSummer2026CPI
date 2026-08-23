@@ -8,7 +8,7 @@ import type {
   RegisterBody,
   SessionResult,
 } from "../dtos/auth.dto.js";
-import type { User } from "../models/user.model.js";
+import type { User } from "../models/auth.model.js";
 import { AUTH_SQL, REFRESH_SQL } from "../sqls/auth.sql.js";
 import { comparePassword, hashPassword } from "../utils/password.util.js";
 import {
@@ -30,7 +30,11 @@ export class AuthError extends Error {
 }
 
 /** Issues an access token plus a fresh refresh token row. */
-function startSession(user: AuthUser, rememberMe: boolean, message: string): SessionResult {
+function startSession(
+  user: AuthUser,
+  rememberMe: boolean,
+  message: string,
+): SessionResult {
   const refreshMaxAgeMs = rememberMe ? REFRESH_TTL_REMEMBER_MS : REFRESH_TTL_MS;
   const refreshToken = generateRefreshToken();
 
@@ -86,9 +90,9 @@ export async function loginUser(body: LoginBody): Promise<SessionResult> {
   const email = body.email?.trim().toLowerCase();
   const { password, rememberMe } = body;
 
-  const user = adminDb
-    .prepare(AUTH_SQL.findUserForLogin)
-    .get(email) as User | undefined;
+  const user = adminDb.prepare(AUTH_SQL.findUserForLogin).get(email) as
+    | User
+    | undefined;
 
   if (!user) {
     throw new AuthError(401, "User not found");

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import type { CreateSchemaBody, UpdateSchemaBody } from "../dtos/schema.dto.js";
-import * as schemaService from "../services/schemaService.js";
-import { SchemaError } from "../services/schemaService.js";
+import * as schemaService from "../services/schema.service..js";
+import { SchemaError } from "../services/schema.service..js";
 
 //get(/)
 export function getAllSchemas(req: Request, res: Response) {

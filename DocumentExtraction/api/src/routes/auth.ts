@@ -4,7 +4,7 @@ import {
   logout,
   refresh,
   register,
-} from "../features/auth/controllers/authController.js";
+} from "../features/auth/controllers/auth.contoller.js";
 const router = Router();
 
 router.post("/register", register);
