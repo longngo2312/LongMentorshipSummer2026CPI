@@ -6,6 +6,7 @@ import type {
 import { DOCUMENT_SQL } from "../document/sqls/document.sql.js";
 import { resolveStoragePath } from "../document/utils/storage.util.js";
 import { ParsingError, parsedDocument } from "../parsing/index.js";
+import { extractDocument } from "./extractionService.js";
 import {
   claimNextJob,
   completeJob,
@@ -82,8 +83,10 @@ async function runJob(job: ExtractionJob | undefined) {
       parsed.charCount,
       parsed.method,
     );
-    //no need to change status to extracted since we're just parsing the document
-    //only change to extracted after LLMs
+    //Extraction Starts HERE
+    await extractDocument(db, job.document_id);
+
+    db.prepare(DOCUMENT_SQL.updateStatus).run("extracted", job.document_id);
 
     completeJob(job.id);
   } catch (error) {

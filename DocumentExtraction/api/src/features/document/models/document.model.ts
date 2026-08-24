@@ -5,7 +5,13 @@ export interface DocumentRecord {
   filename: string;
   mime_type: string;
   storage_path: string;
-  status: "uploaded" | "processing" | "extracted" | "failed";
+  status:
+    | "uploaded"
+    | "processing"
+    | "extracted"
+    | "reviewed"
+    | "indexed"
+    | "failed";
   size_bytes: number;
   uploaded_at: string;
 }

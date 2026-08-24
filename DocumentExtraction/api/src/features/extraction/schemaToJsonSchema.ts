@@ -36,7 +36,12 @@ export function schemaToJsonSchema(columns: SchemaColumns[]): SchemaJson {
     // Enum columns get a real enum constraint — free correctness from the grammar
     if (col.data_type === "enum" && col.enum_options) {
       const options: string[] = JSON.parse(col.enum_options);
-      properties[slug] = { enum: [...options, null] };
+      properties[slug] = {
+        type: "object",
+        properties: { value: { enum: [...options, null] } },
+        required: ["value"],
+        additionalProperties: false,
+      };
 
       const enumList = options.join(", ");
       fieldLines.push(
@@ -46,7 +51,12 @@ export function schemaToJsonSchema(columns: SchemaColumns[]): SchemaJson {
       );
     } else {
       // Everything else is string|null — we coerce in step 14, not here
-      properties[slug] = { type: ["string", "null"] };
+      properties[slug] = {
+        type: "object",
+        properties: { value: { type: ["string", "null"] } },
+        required: ["value"],
+        additionalProperties: false,
+      };
 
       fieldLines.push(
         col.description

@@ -14,6 +14,8 @@ export function openTenantDB(tenantDBPath: string) {
   db.exec(
     // Create tables for each users
     `   
+        DROP TABLE IF EXISTS extractedDocumentText;
+ 
         CREATE TABLE IF NOT EXISTS document_schemas (
             id           INTEGER PRIMARY KEY AUTOINCREMENT,
             name         TEXT NOT NULL UNIQUE,
@@ -41,8 +43,7 @@ export function openTenantDB(tenantDBPath: string) {
             mime_type    TEXT NOT NULL,
             storage_path TEXT NOT NULL,          -- server-generated, never client input
             size_bytes   INTEGER NOT NULL,
-            status       TEXT NOT NULL DEFAULT 'uploaded'
-                         CHECK(status IN ('uploaded','processing','extracted','failed')),
+            status       TEXT NOT NULL DEFAULT 'uploaded',
             uploaded_at  TEXT NOT NULL DEFAULT (datetime('now'))
         );
         CREATE INDEX IF NOT EXISTS idx_documents_schema ON documents(schema_id);
@@ -57,19 +58,29 @@ export function openTenantDB(tenantDBPath: string) {
             parsed_at    TEXT NOT NULL DEFAULT (datetime('now'))
         );
 
-        CREATE TABLE IF NOT EXISTS extractedDocumentText(
-          id             INTEGER PRIMARY KEY AUTOINCREMENT,
-          document_id    INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
-          schema_id      INTEGER NOT NULL REFERENCES document_schemas(id) ON DELETE CASCADE,
-          value_text     TEXT NOT NULL,
-          value_number   REAL NOT NULL, 
-          value_date     TEXT,
-          confidence     REAL,
-          source_snippet TEXT,
-          UNIQUE(document_id, schema_id) 
+
+        CREATE TABLE IF NOT EXISTS extracted_values (
+            id INTEGER   PRIMARY KEY AUTOINCREMENT,
+            document_id  INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+            column_id    INTEGER NOT NULL REFERENCES schema_columns(id) ON DELETE CASCADE, 
+            llm_value    TEXT,
+            llm_quote    TEXT, 
+            value_text   TEXT, 
+            value_number REAL,
+            value_date   TEXT,
+            source_page  INTEGER,
+            source_start INTEGER, 
+            source_end   INTEGER, 
+            match_kind   TEXT CHECK(match_kind IN ('exact', 'normalized', 'none')),
+            confidence   REAL,
+            review_status TEXT NOT NULL DEFAULT 'unreviewed'
+                          CHECK(review_status IN ('unreviewed', 'accepted', 'edited', 'rejected')),
+            reviewed_at  TEXT, 
+            UNIQUE(document_id, column_id)   
         );
 
-        CREATE INDEX IF NOT EXISTS idx_values_document ON extractedDocumentText(document_id)
+
+        CREATE INDEX IF NOT EXISTS idx_values_document ON extracted_values(document_id);
     `, //pages_json` is `JSON.stringify(result.pages)
   );
   return db;

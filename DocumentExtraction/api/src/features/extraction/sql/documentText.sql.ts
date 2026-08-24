@@ -10,4 +10,7 @@ export const DOCUMENT_TEXT_SQL = {
             method = excluded.method, 
             parsed_at = excluded.parsed_at;
     `,
+  getByDocumentId: `
+        SELECT * FROM parsedDocumentText WHERE document_id = ?;
+    `,
 };
