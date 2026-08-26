@@ -49,6 +49,14 @@ export default function PdfPageLayer({
       wrapper.querySelectorAll<HTMLElement>(SPAN_SELECTOR),
     );
 
+    // No spans means the text layer has not painted yet, not that the quote is
+    // missing. Reporting a miss here flashes the warning banner on every page
+    // load, a moment before the real search succeeds.
+    if (spans.length === 0) {
+      setRects([]);
+      return;
+    }
+
     // The model paraphrases, and OCR text rarely matches verbatim — landing on
     // roughly the right line beats highlighting nothing at all.
     const range = findBestRange(spans, [
