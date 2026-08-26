@@ -64,3 +64,33 @@ export interface UploadItem {
   status: "pending" | "uploading" | "done" | "error";
   error?: string;
 }
+
+//extracted document interface
+
+export type DataType = "text" | "number" | "date" | "boolean" | "enum";
+
+export interface ExtractedValueRow {
+  id: number;
+  document_id: number;
+  column_id: number;
+  column_name: string;
+  data_type: DataType;
+  position: number;
+  llm_value: string | null;
+  llm_quote: string | null;
+  value_text: string | null;
+  value_number: number | null;
+  value_date: string | null;
+  source_page: number | null;
+  source_start: number | null;
+  source_end: number | null;
+  match_kind: "exact" | "normalized" | "none" | null;
+  confidence: number | null;
+  review_status: "unreviewed" | "accepted" | "edited" | "rejected";
+  reviewed_at: string | null;
+}
+export interface ExtractedDocument {
+  document_id: number;
+  status: DocumentStatus;
+  value: ExtractedValueRow[];
+}

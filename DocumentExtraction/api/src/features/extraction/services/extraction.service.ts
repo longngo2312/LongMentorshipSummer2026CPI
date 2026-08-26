@@ -1,15 +1,21 @@
 import type Database from "better-sqlite3";
-import { DocumentRecord } from "../document/models/document.model.js";
-import { DOCUMENT_SQL } from "../document/sqls/document.sql.js";
-import { SchemaColumns } from "../schema/models/schema.model.js";
-import { SCHEMA_SQL } from "../schema/sqls/schema.sql.js";
-import { coerce } from "./coerce.js";
-import { LlmRequest } from "./llms/dtos.js";
-import { OllamaProvider } from "./llms/ollama.js";
-import { DocumentText, LlmFieldAnswer } from "./models/extraction.model.js";
-import { schemaToJsonSchema } from "./schemaToJsonSchema.js";
-import { DOCUMENT_TEXT_SQL } from "./sql/documentText.sql.js";
-import { EXTRACTED_VALUES_SQL } from "./sql/extractedValues.sql.js";
+import { getTenantDb } from "../../../db/tenantDb.js";
+import { DocumentRecord } from "../../document/models/document.model.js";
+import { DOCUMENT_SQL } from "../../document/sqls/document.sql.js";
+import { SchemaColumns } from "../../schema/models/schema.model.js";
+import { SCHEMA_SQL } from "../../schema/sqls/schema.sql.js";
+import { LlmRequest } from "../llms/dtos.js";
+import { OllamaProvider } from "../llms/ollama.js";
+import {
+  DocumentText,
+  ExtractedDocument,
+  ExtractedValueRow,
+  LlmFieldAnswer,
+} from "../models/extraction.model.js";
+import { DOCUMENT_TEXT_SQL } from "../sql/documentText.sql.js";
+import { EXTRACTED_VALUES_SQL } from "../sql/extractedValues.sql.js";
+import { coerce } from "../utils/coerce.util.js";
+import { schemaToJsonSchema } from "../utils/schemaToJsonSchema.util.js";
 
 const MAX_INPUT_CHARS = 16000;
 
@@ -108,4 +114,24 @@ export async function extractDocument(
       );
     }
   })();
+}
+
+export function getExtractedDocument(
+  userId: number,
+  documentId: number,
+): ExtractedDocument | undefined {
+  const db = getTenantDb(userId);
+
+  const document = db.prepare(DOCUMENT_SQL.getById).get(documentId) as
+    | DocumentRecord
+    | undefined;
+  if (!document) return undefined;
+  const extractedValue = db
+    .prepare(EXTRACTED_VALUES_SQL.getByDocument)
+    .all(documentId) as ExtractedValueRow[];
+  return {
+    document_id: documentId,
+    status: document.status,
+    value: extractedValue,
+  };
 }

@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import DocumentGridPage from "../pages/DocumentGridPage";
+import ExtractedDocumentPage from "../pages/ExtractedDocumentPage";
 import LoginPage from "../pages/LoginPage";
 import QueryPage from "../pages/QueryPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -31,6 +32,7 @@ function AppRouter() {
             <Route path="/schemas/:id" element={<SchemaDetailPage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/documents" element={<DocumentGridPage />} />
+            <Route path="/docuemnts/:id" element={<ExtractedDocumentPage />} />
             <Route path="/query" element={<QueryPage />} />
             <Route path="/" element={<Navigate to="/schemas" replace />} />
           </Route>

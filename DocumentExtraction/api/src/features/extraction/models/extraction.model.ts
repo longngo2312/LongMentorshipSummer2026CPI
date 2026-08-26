@@ -1,3 +1,6 @@
+import { DocumentRecord } from "../../document/models/document.model.js";
+import type { SchemaColumns } from "../../schema/models/schema.model.js";
+
 export interface DocumentText {
   document_id: number;
   text: string;
@@ -30,6 +33,17 @@ export interface ExtractedValue {
   reviewed_at: string | null;
 }
 
+export interface ExtractedValueRow extends ExtractedValue {
+  column_name: string;
+  data_type: SchemaColumns["data_type"];
+  position: number;
+}
+
+export interface ExtractedDocument {
+  document_id: number;
+  status: DocumentRecord["status"];
+  value: ExtractedValueRow[];
+}
 export interface SchemaJson {
   schema: Record<string, unknown>;
   keyToColumnId: Map<string, number>;

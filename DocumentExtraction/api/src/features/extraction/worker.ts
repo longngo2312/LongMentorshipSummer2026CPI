@@ -6,13 +6,13 @@ import type {
 import { DOCUMENT_SQL } from "../document/sqls/document.sql.js";
 import { resolveStoragePath } from "../document/utils/storage.util.js";
 import { ParsingError, parsedDocument } from "../parsing/index.js";
-import { extractDocument } from "./extractionService.js";
 import {
   claimNextJob,
   completeJob,
   failJob,
   recoverStaleJobs,
 } from "./queue/jobQueue.js";
+import { extractDocument } from "./services/extraction.service.js";
 import { DOCUMENT_TEXT_SQL } from "./sql/documentText.sql.js";
 
 let ticking = false;

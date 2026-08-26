@@ -307,20 +307,20 @@ user:   Fields to extract:
 
 ### Gotchas in the result loop
 
-- [ ] **Iterate `keyToColumnId`, not `Object.keys(result)`.** A key the model
+- [x] **Iterate `keyToColumnId`, not `Object.keys(result)`.** A key the model
       invented has no column to write to; a key it skipped still needs a null row.
-- [ ] The provider returns `unknown`. Narrow before indexing: reject
+- [x] The provider returns `unknown`. Narrow before indexing: reject
       non-objects, and per field take `typeof v === "string" ? v : null`. The
       grammar should prevent a number coming back, but "should" is doing a lot
       of work there and `.trim()` on a number throws.
-- [ ] `enum_options` comes out of SQLite as a raw JSON string. Parse it once per
+- [x] `enum_options` comes out of SQLite as a raw JSON string. Parse it once per
       column before the loop and pass the array to `coerce`. It's already parsed
       separately inside `schemaToJsonSchema` — that duplication is fine, don't
       refactor around it now.
-- [ ] Write `llm_value` = the raw string the model returned, before coercion.
+- [x] Write `llm_value` = the raw string the model returned, before coercion.
       That column is your only record of what actually happened when a value
       looks wrong later.
-- [ ] Wrap the whole loop in one transaction. Ten separate writes on a WAL DB is
+- [x] Wrap the whole loop in one transaction. Ten separate writes on a WAL DB is
       ten fsyncs for no reason, and a crash mid-loop leaves a half-extracted
       document that looks complete.
 
@@ -332,9 +332,9 @@ In `runJob`, after the `DOCUMENT_TEXT_SQL.upsert` call
 ([worker.ts:76-83](../api/src/features/extraction/worker.ts#L76-L83)) and before
 `completeJob(job.id)`:
 
-- [ ] `await extractDocument(db, job.document_id);`
-- [ ] `db.prepare(DOCUMENT_SQL.updateStatus).run("extracted", job.document_id);`
-- [ ] Delete the two-line comment above `completeJob` that says extraction
+- [x] `await extractDocument(db, job.document_id);`
+- [x] `db.prepare(DOCUMENT_SQL.updateStatus).run("extracted", job.document_id);`
+- [x] Delete the two-line comment above `completeJob` that says extraction
       hasn't happened yet.
 
 ### Bug to fix while you're in this file
@@ -345,7 +345,7 @@ In `runJob`, after the `DOCUMENT_TEXT_SQL.upsert` call
 model burns all three attempts, several minutes of retries, and then reports it
 as a parse failure.
 
-- [ ] Add the LLM case to the `permanent` test in the catch. Quick version: also
+- [] Add the LLM case to the `permanent` test in the catch. Quick version: also
       read `(error as any).permanent === true`. Better version: give the
       provider a real `LlmError` class with a `permanent: boolean` field and
       `instanceof` it — about 8 lines, and it removes the `any`. Your call.

@@ -1,5 +1,5 @@
-import type { SchemaColumns } from "../schema/models/schema.model.js";
-import type { SchemaJson } from "./models/extraction.model.js";
+import type { SchemaColumns } from "../../schema/models/schema.model.js";
+import type { SchemaJson } from "../models/extraction.model.js";
 
 function dedupeSlug(slug: string, used: Set<string>): string {
   if (!used.has(slug)) return slug;

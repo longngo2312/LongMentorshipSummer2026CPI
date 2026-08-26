@@ -1,5 +1,5 @@
-import { normalizeWhiteSpace } from "../parsing/utils/text.util.js";
-import type { SchemaColumns } from "../schema/models/schema.model.js";
+import { normalizeWhiteSpace } from "../../parsing/utils/text.util.js";
+import type { SchemaColumns } from "../../schema/models/schema.model.js";
 export interface CoercedValue {
   value_text: string | null;
   value_number: number | null;
@@ -211,22 +211,35 @@ export function coerce(
       const value = raw.trim();
       if (value === "") return empty;
 
-      // Documents write money, not JavaScript numbers. Strip currency symbols,
-      // thousands separators and inner spaces so "$1,234.56" survives; anything
-      // still non-numeric after that is genuinely unparseable.
-      const stripped = value.replace(/[$€£¥,\s]/g, "");
-      if (stripped === "") return empty;
+      // qwen2.5 decorates numbers when the grammar forces them into a string —
+      // observed output includes "{1100.00}" and "strconv($1,234.56)". Peel that
+      // off before looking at the number itself.
+      const unwrapped = value
+        .replace(/[{}]/g, "")
+        .replace(/^[A-Za-z_][A-Za-z0-9_]*\s*\((.*)\)$/, "$1")
+        .trim();
 
-      const number = Number(stripped);
+      // Accounting notation: (1,234.56) means -1234.56.
+      const negated = /^\((.*)\)$/.exec(unwrapped);
+      const body = negated ? negated[1] : unwrapped;
+
+      // Documents write money, not JavaScript numbers — drop currency symbols,
+      // thousands separators and inner spaces.
+      const digits = body.replace(/[$€£¥,\s]/g, "");
+      if (digits === "") return empty;
+
+      const number = Number(digits);
 
       if (Number.isNaN(number)) return empty;
 
       return {
         ...empty,
-        value_number: number,
-        // The UI reads value_text. Keep what the document said — a reviewer who
-        // sees 1234.56 where the page said $1,234.56 assumes we mangled it.
-        value_text: value,
+        value_number: negated ? -number : number,
+        // The UI reads value_text. Keep the document's own formatting — a
+        // reviewer who sees 1234.56 where the page said $1,234.56 assumes we
+        // mangled it — but without the model's decoration. llm_value still has
+        // the untouched original.
+        value_text: unwrapped,
       };
     }
     case "date": {
@@ -238,7 +251,8 @@ export function coerce(
     }
     case "boolean": {
       const flag = normalizeWhiteSpace(raw).trim().toLowerCase();
-      if (booleanValue["true"].has(flag)) return { ...empty, value_text: "true" };
+      if (booleanValue["true"].has(flag))
+        return { ...empty, value_text: "true" };
       if (booleanValue["false"].has(flag))
         return { ...empty, value_text: "false" };
       return empty;
