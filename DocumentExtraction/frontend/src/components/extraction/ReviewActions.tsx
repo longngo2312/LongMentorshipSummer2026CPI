@@ -2,10 +2,10 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { Box, IconButton, Tooltip } from "@mui/material";
-import type { ExtractedValueRow } from "../../types";
+import type { ReviewStatus } from "../../types";
 
 interface ReviewActionsProps {
-  status: ExtractedValueRow["review_status"];
+  status: ReviewStatus;
   onAccept: () => void;
   onEdit: () => void;
   onReject: () => void;

@@ -70,6 +70,10 @@ export interface ReviewField {
   llm_quote: string | null;
   value_text: string | null;
   source_page: number | null;
+  // Index into the matching ReviewPage.text, so the text viewer can slice the
+  // quote out directly. Null whenever match_kind is "none".
+  source_start: number | null;
+  source_end: number | null;
   match_kind: MatchKind | null;
   confidence: number | null;
   review_status: ReviewStatus;

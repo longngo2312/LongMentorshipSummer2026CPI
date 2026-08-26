@@ -9,29 +9,29 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import type { ExtractedValueRow } from "../../types";
+import type { ReviewField } from "../../types";
 import ExtractedValueRowItem from "./ExtractedValueRowItem";
 
-const HIDE_ON_MOBILE = { display: { xs: "none", md: "table-cell" } };
-
 interface ExtractedValuesTableProps {
-  values: ExtractedValueRow[];
-  onAccept: (id: number) => void;
-  onReject: (id: number) => void;
-  onSaveEdit: (id: number, value: string) => void;
+  fields: ReviewField[];
+  edits: Map<number, string | null>;
+  activeColumnId: number | null;
+  onQuoteClick: (field: ReviewField) => void;
+  onSetValue: (columnId: number, value: string | null) => void;
 }
 
 export default function ExtractedValuesTable({
-  values,
-  onAccept,
-  onReject,
-  onSaveEdit,
+  fields,
+  edits,
+  activeColumnId,
+  onQuoteClick,
+  onSetValue,
 }: ExtractedValuesTableProps) {
-  if (values.length === 0) {
+  if (fields.length === 0) {
     return (
       <Paper variant="outlined" sx={{ p: 6, textAlign: "center" }}>
         <Typography color="text.secondary">
-          Nothing extracted for this document.
+          Nothing extracted for this document yet.
         </Typography>
       </Paper>
     );
@@ -40,14 +40,12 @@ export default function ExtractedValuesTable({
   return (
     <Box sx={{ overflowX: "auto" }}>
       <TableContainer component={Paper} variant="outlined">
-        <Table size="small" sx={{ minWidth: 640 }}>
+        <Table size="small" sx={{ minWidth: 620 }}>
           <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: 700 }}>Field</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Value</TableCell>
-              <TableCell sx={{ fontWeight: 700, ...HIDE_ON_MOBILE }}>
-                Source
-              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Source</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Review</TableCell>
               <TableCell sx={{ fontWeight: 700 }} align="right">
                 {/* actions */}
@@ -56,13 +54,18 @@ export default function ExtractedValuesTable({
           </TableHead>
 
           <TableBody>
-            {values.map((row) => (
+            {fields.map((field) => (
               <ExtractedValueRowItem
-                key={row.id}
-                row={row}
-                onAccept={onAccept}
-                onReject={onReject}
-                onSaveEdit={onSaveEdit}
+                key={field.column_id}
+                field={field}
+                pendingValue={
+                  edits.has(field.column_id)
+                    ? edits.get(field.column_id)
+                    : undefined
+                }
+                active={activeColumnId === field.column_id}
+                onQuoteClick={onQuoteClick}
+                onSetValue={onSetValue}
               />
             ))}
           </TableBody>

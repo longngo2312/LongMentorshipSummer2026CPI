@@ -1,81 +1,154 @@
-import { Container } from "@mui/material";
-import { useState } from "react";
+import { Alert, Box, CircularProgress, Paper } from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import ExtractedValuesTable from "../components/extraction/ExtractedValuesTable";
-import ExtractionSummary from "../components/extraction/ExtractionSummary";
-import { MOCK_EXTRACTED_DOCUMENT } from "../mocks/extractedDocument.mock";
-import type { ExtractedValueRow } from "../types";
+import ReviewPanel from "../components/extraction/ReviewPanel";
+import SplitPane from "../components/layout/SplitPane";
+import type { SplitPaneTab } from "../components/layout/SplitPane";
+import DocumentViewerPanel from "../components/viewer/DocumentViewerPanel";
+import { getReview, saveReview } from "../api/documents";
+import { MOCK_REVIEW } from "../mocks/review.mock";
+import type { ActiveQuote, ReviewField, ReviewPayload } from "../types";
+
+// Lets the UI be worked on without a running API or a loaded model.
+const USE_MOCK = import.meta.env.VITE_MOCK_REVIEW === "true";
 
 export default function ExtractedDocumentPage() {
   const { id } = useParams<{ id: string }>();
+  const documentId = Number(id);
 
-  // TODO(wiring): replace the mock seed with the store, which already calls
-  // GET /api/extraction/:id:
-  //   const document = useExtractedDocumentStore((s) => s.document);
-  //   const loading = useExtractedDocumentStore((s) => s.loading);
-  //   const fetchExtractedDocument = useExtractedDocumentStore(
-  //     (s) => s.fetchExtractedDocument,
-  //   );
-  //   useEffect(() => { fetchExtractedDocument(Number(id)); }, [id]);
-  // Loading and not-found branches go in at the same time — the endpoint
-  // distinguishes "no such document" from "extracted nothing yet".
-  const [document, setDocument] = useState(MOCK_EXTRACTED_DOCUMENT);
+  const [payload, setPayload] = useState<ReviewPayload | null>(null);
+  // The id the current payload belongs to, so `loading` can be derived instead
+  // of flipped synchronously inside the effect.
+  const [loadedId, setLoadedId] = useState<number | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Local-only for now. Each of these becomes a PATCH once the review endpoint
-  // exists; the row's review_status is what the server ultimately owns.
-  function setRow(
-    valueId: number,
-    update: (row: ExtractedValueRow) => ExtractedValueRow,
-  ) {
-    setDocument((current) => ({
-      ...current,
-      values: current.values.map((row) =>
-        row.id === valueId ? update(row) : row,
-      ),
+  // Unsaved verdicts, keyed by column_id. A key present with a null value means
+  // "rejected" — which is why this is a Map rather than a plain object with
+  // undefined holes.
+  const [edits, setEdits] = useState<Map<number, string | null>>(new Map());
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const [activeQuote, setActiveQuote] = useState<ActiveQuote | null>(null);
+  const [mobileTab, setMobileTab] = useState<SplitPaneTab>("right");
+
+  const load = useCallback(() => {
+    const fetching = USE_MOCK
+      ? Promise.resolve(MOCK_REVIEW)
+      : getReview(documentId);
+
+    return fetching
+      .then((data) => {
+        setPayload(data);
+        setEdits(new Map());
+        setLoadError(null);
+      })
+      .catch((error: unknown) =>
+        setLoadError(error instanceof Error ? error.message : String(error)),
+      )
+      .finally(() => setLoadedId(documentId));
+  }, [documentId]);
+
+  const loading = loadedId !== documentId;
+
+  useEffect(() => {
+    if (Number.isInteger(documentId) && documentId > 0) load();
+  }, [documentId, load]);
+
+  function handleSetValue(columnId: number, value: string | null) {
+    setEdits((current) => new Map(current).set(columnId, value));
+  }
+
+  function handleQuoteClick(field: ReviewField) {
+    if (!field.llm_quote) return;
+
+    setActiveQuote({
+      columnId: field.column_id,
+      quote: field.llm_quote,
+      // Single-page formats (office, images, plain text) carry no page number.
+      pageNumber: field.source_page ?? 1,
+      start: field.source_start,
+      end: field.source_end,
+    });
+    // On a phone the document is behind a tab, so a click that only sets state
+    // would look like nothing happened.
+    setMobileTab("left");
+  }
+
+  function handleSave() {
+    setSaving(true);
+    setSaveError(null);
+
+    const payloadEdits = Array.from(edits, ([column_id, value]) => ({
+      column_id,
+      value,
     }));
+
+    saveReview(documentId, payloadEdits)
+      // Refetch rather than patching local state: the server derives each
+      // review_status and re-coerces every value, so its copy is the truth.
+      .then(() => load())
+      .catch((error: unknown) =>
+        setSaveError(error instanceof Error ? error.message : String(error)),
+      )
+      .finally(() => setSaving(false));
   }
 
-  function handleAccept(valueId: number) {
-    setRow(valueId, (row) => ({ ...row, review_status: "accepted" }));
+  if (!Number.isInteger(documentId) || documentId <= 0) {
+    return <Alert severity="error">Invalid document id.</Alert>;
   }
 
-  function handleReject(valueId: number) {
-    setRow(valueId, (row) => ({ ...row, review_status: "rejected" }));
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
-  function handleSaveEdit(valueId: number, value: string) {
-    setRow(valueId, (row) => ({
-      ...row,
-      // Which column the edit lands in follows data_type, the same split coerce()
-      // makes on the server. The server re-coerces on save — this is display only.
-      ...(row.data_type === "date"
-        ? { value_date: value }
-        : { value_text: value }),
-      review_status: "edited",
-    }));
+  if (loadError || !payload) {
+    return <Alert severity="error">{loadError ?? "Document not found."}</Alert>;
   }
 
-  function handleApprove() {
-    // TODO(wiring): POST the approval, which flips documents.status to
-    // "reviewed" and makes the document eligible for indexing.
-    setDocument((current) => ({ ...current, status: "reviewed" }));
-  }
+  const activeField =
+    payload.fields.find(
+      (field) => field.column_id === activeQuote?.columnId,
+    ) ?? null;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <ExtractionSummary
-        documentId={Number(id) || document.document_id}
-        status={document.status}
-        values={document.values}
-        onApprove={handleApprove}
+    <Paper
+      variant="outlined"
+      // flexGrow against the Layout container's column flex, so the split fills
+      // the viewport instead of collapsing to its content height.
+      sx={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}
+    >
+      <SplitPane
+        leftLabel="Document"
+        rightLabel="Extracted values"
+        mobileTab={mobileTab}
+        onMobileTabChange={setMobileTab}
+        left={
+          <DocumentViewerPanel
+            document={payload.document}
+            pages={payload.pages}
+            activeQuote={activeQuote}
+            fallbackValue={activeField?.value_text ?? null}
+          />
+        }
+        right={
+          <ReviewPanel
+            document={payload.document}
+            fields={payload.fields}
+            edits={edits}
+            activeColumnId={activeQuote?.columnId ?? null}
+            saving={saving}
+            saveError={saveError}
+            onQuoteClick={handleQuoteClick}
+            onSetValue={handleSetValue}
+            onSave={handleSave}
+          />
+        }
       />
-
-      <ExtractedValuesTable
-        values={document.values}
-        onAccept={handleAccept}
-        onReject={handleReject}
-        onSaveEdit={handleSaveEdit}
-      />
-    </Container>
+    </Paper>
   );
 }

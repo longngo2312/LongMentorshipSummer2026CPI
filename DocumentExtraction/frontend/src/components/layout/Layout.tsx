@@ -73,7 +73,19 @@ export default function Layout() {
           </Box>
         </Toolbar>
       </AppBar>
-      <Container component="main" sx={{ py: 3, flexGrow: 1, px: { xs: 2, sm: 3 } }}>
+      <Container
+        component="main"
+        // Column flex so a page can opt into filling the viewport (the split
+        // review panel does) while ordinary pages still grow and scroll.
+        sx={{
+          py: 3,
+          flexGrow: 1,
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
+          px: { xs: 2, sm: 3 },
+        }}
+      >
         <Outlet />
       </Container>
     </Box>

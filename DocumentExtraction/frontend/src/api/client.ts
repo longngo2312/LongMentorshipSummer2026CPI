@@ -75,11 +75,16 @@ async function send(path: string, init: RequestInit): Promise<Response> {
   });
 }
 
-export async function apiFetch<T>(
+/**
+ * One request, transparently retried once against a refreshed access token.
+ * Shared by every caller so the refresh behaviour can't drift between them.
+ * Throws ApiError on a non-2xx; the body is left unread for the caller.
+ */
+async function request(
   path: string,
-  init: RequestInit = {},
-  allowRetry = true,
-): Promise<T> {
+  init: RequestInit,
+  allowRetry: boolean,
+): Promise<Response> {
   let res = await send(path, init);
 
   // The auth routes are excluded: a 401 from /auth/login means bad credentials,
@@ -108,7 +113,32 @@ export async function apiFetch<T>(
     );
   }
 
+  return res;
+}
+
+export async function apiFetch<T>(
+  path: string,
+  init: RequestInit = {},
+  allowRetry = true,
+): Promise<T> {
+  const res = await request(path, init, allowRetry);
+
   if (res.status === 204) return undefined as T;
 
   return res.json() as Promise<T>;
+}
+
+/**
+ * Same auth and refresh path as apiFetch, but hands back the raw bytes.
+ *
+ * This exists because the uploaded file is behind a Bearer header, and a plain
+ * <img src="/api/documents/1/file"> or a PDF.js URL fetch cannot set one. The
+ * caller turns this blob into an object URL instead.
+ */
+export async function apiFetchBlob(
+  path: string,
+  init: RequestInit = {},
+): Promise<Blob> {
+  const res = await request(path, init, true);
+  return res.blob();
 }

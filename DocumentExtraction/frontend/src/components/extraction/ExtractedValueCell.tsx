@@ -1,28 +1,33 @@
-import { Box, Chip, Typography } from "@mui/material";
-import type { ExtractedValueRow } from "../../types";
-import { booleanLabel, displayValue } from "../../utils/extractedValue";
+import { Chip, Typography } from "@mui/material";
+import type { ReviewField } from "../../types";
+import { booleanLabel } from "../../utils/extractedValue";
 
 interface ExtractedValueCellProps {
-  row: ExtractedValueRow;
+  field: ReviewField;
+  /** Unsaved edit, when the reviewer has changed this field in this session. */
+  pendingValue: string | null | undefined;
 }
 
-/** Read-only rendering of one extracted value, shaped by its data_type. */
-export default function ExtractedValueCell({ row }: ExtractedValueCellProps) {
-  const value = displayValue(row);
+/** Read-only rendering of one value, shaped by its data_type. */
+export default function ExtractedValueCell({
+  field,
+  pendingValue,
+}: ExtractedValueCellProps) {
+  const value = pendingValue === undefined ? field.value_text : pendingValue;
 
-  if (value === null) {
+  if (value === null || value === "") {
     return (
       <Typography
         variant="body2"
         color="text.disabled"
         sx={{ fontStyle: "italic" }}
       >
-        Not found
+        {pendingValue === null ? "Rejected" : "Not found"}
       </Typography>
     );
   }
 
-  if (row.data_type === "boolean") {
+  if (field.data_type === "boolean") {
     return (
       <Chip
         label={booleanLabel(value)}
@@ -33,23 +38,8 @@ export default function ExtractedValueCell({ row }: ExtractedValueCellProps) {
     );
   }
 
-  if (row.data_type === "enum") {
+  if (field.data_type === "enum") {
     return <Chip label={value} size="small" variant="outlined" />;
-  }
-
-  if (row.data_type === "number") {
-    return (
-      <Box>
-        {/* The document's own formatting reads as correct to a reviewer; the
-            parsed number underneath is what the query layer will actually use. */}
-        <Typography variant="body2">{value}</Typography>
-        {row.value_number !== null && (
-          <Typography variant="caption" color="text.secondary">
-            {row.value_number}
-          </Typography>
-        )}
-      </Box>
-    );
   }
 
   return <Typography variant="body2">{value}</Typography>;

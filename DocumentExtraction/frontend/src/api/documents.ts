@@ -1,5 +1,10 @@
-import type { DocumentListItem, UploadResponse } from "../types";
-import { apiFetch } from "./client";
+import type {
+  DocumentListItem,
+  ReviewEdit,
+  ReviewPayload,
+  UploadResponse,
+} from "../types";
+import { apiFetch, apiFetchBlob } from "./client";
 
 export function uploadDocument(file: File, schemaId: number) {
   const formData = new FormData();
@@ -27,4 +32,26 @@ export function deleteDocument(id: number) {
   return apiFetch<void>(`/documents/${id}`, {
     method: "DELETE",
   });
+}
+
+/** Document record, parsed page text and extracted fields in one call. */
+export function getReview(id: number) {
+  return apiFetch<ReviewPayload>(`/documents/${id}/review`);
+}
+
+/**
+ * Batch save. The server derives each review_status by comparing `value` against
+ * llm_value, then flips the document to "reviewed" — so this is called once, on
+ * submit, not per row.
+ */
+export function saveReview(id: number, edits: ReviewEdit[]) {
+  return apiFetch<{ ok: true }>(`/documents/${id}/review`, {
+    method: "PATCH",
+    body: JSON.stringify({ edits }),
+  });
+}
+
+/** The raw upload. Blob rather than a URL because the route needs a Bearer header. */
+export function getDocumentFile(id: number) {
+  return apiFetchBlob(`/documents/${id}/file`);
 }

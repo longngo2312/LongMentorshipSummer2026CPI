@@ -22,6 +22,8 @@ interface ReviewFieldRow {
   llm_quote: string | null;
   value_text: string | null;
   source_page: number | null;
+  source_start: number | null;
+  source_end: number | null;
   match_kind: string | null;
   confidence: number | null;
   review_status: string;
@@ -59,6 +61,8 @@ export function getReviewPayload(
     llm_quote: row.llm_quote,
     value_text: row.value_text,
     source_page: row.source_page,
+    source_start: row.source_start,
+    source_end: row.source_end,
     match_kind: row.match_kind as ReviewField["match_kind"],
     confidence: row.confidence,
     review_status: row.review_status as ReviewField["review_status"],

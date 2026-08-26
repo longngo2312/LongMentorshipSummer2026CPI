@@ -45,6 +45,12 @@ export const EXTRACTED_VALUES_SQL = {
             ev.llm_quote,
             ev.value_text,
             ev.source_page,
+            -- Offsets into pages_json[source_page-1].text, which is the exact
+            -- string ReviewPage.text hands the client — so the text viewer can
+            -- slice instead of searching. The PDF viewer cannot use these:
+            -- PDF.js tokenizes the page differently and has to re-find the quote.
+            ev.source_start,
+            ev.source_end,
             ev.match_kind,
             ev.confidence,
             ev.review_status

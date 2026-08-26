@@ -1,5 +1,5 @@
 import { Chip } from "@mui/material";
-import type { ExtractedValueRow } from "../../types";
+import type { ReviewStatus } from "../../types";
 
 const REVIEW_CHIP = {
   unreviewed: { label: "Unreviewed", color: "default" },
@@ -9,18 +9,23 @@ const REVIEW_CHIP = {
 } as const;
 
 interface ReviewStatusChipProps {
-  status: ExtractedValueRow["review_status"];
+  status: ReviewStatus;
+  /** Not yet saved — shown outlined so it reads as provisional. */
+  pending?: boolean;
 }
 
-export default function ReviewStatusChip({ status }: ReviewStatusChipProps) {
+export default function ReviewStatusChip({
+  status,
+  pending = false,
+}: ReviewStatusChipProps) {
   const chip = REVIEW_CHIP[status];
 
   return (
     <Chip
-      label={chip.label}
+      label={pending ? `${chip.label} •` : chip.label}
       color={chip.color}
       size="small"
-      variant={status === "unreviewed" ? "outlined" : "filled"}
+      variant={pending || status === "unreviewed" ? "outlined" : "filled"}
     />
   );
 }

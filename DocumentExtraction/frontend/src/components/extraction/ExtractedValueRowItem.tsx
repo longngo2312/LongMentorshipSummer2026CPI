@@ -9,60 +9,62 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import type { ExtractedValueRow } from "../../types";
-import { displayValue } from "../../utils/extractedValue";
+import type { ReviewField } from "../../types";
+import { projectStatus } from "../../utils/extractedValue";
 import ExtractedValueCell from "./ExtractedValueCell";
 import ReviewActions from "./ReviewActions";
 import ReviewStatusChip from "./ReviewStatusChip";
 import SourceQuoteCell from "./SourceQuoteCell";
 
-// Provenance is the first thing to go on a narrow screen — the value and the
-// verdict are what a reviewer cannot work without.
-const HIDE_ON_MOBILE = { display: { xs: "none", md: "table-cell" } };
-
 interface ExtractedValueRowItemProps {
-  row: ExtractedValueRow;
-  onAccept: (id: number) => void;
-  onReject: (id: number) => void;
-  onSaveEdit: (id: number, value: string) => void;
+  field: ReviewField;
+  pendingValue: string | null | undefined;
+  active: boolean;
+  onQuoteClick: (field: ReviewField) => void;
+  onSetValue: (columnId: number, value: string | null) => void;
 }
 
 export default function ExtractedValueRowItem({
-  row,
-  onAccept,
-  onReject,
-  onSaveEdit,
+  field,
+  pendingValue,
+  active,
+  onQuoteClick,
+  onSetValue,
 }: ExtractedValueRowItemProps) {
   // Edit mode is transient presentation state, so it stays with the row rather
-  // than being lifted into the page alongside the data.
+  // than being lifted into the page beside the data.
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
 
+  const status = projectStatus(field, pendingValue);
+  const pending = pendingValue !== undefined;
+
   function startEdit() {
-    setDraft(displayValue(row) ?? "");
+    const current = pendingValue === undefined ? field.value_text : pendingValue;
+    setDraft(current ?? "");
     setEditing(true);
   }
 
   function saveEdit() {
-    onSaveEdit(row.id, draft);
+    onSetValue(field.column_id, draft);
     setEditing(false);
   }
 
   return (
-    <TableRow hover>
-      <TableCell sx={{ maxWidth: 200 }}>
+    <TableRow hover selected={active}>
+      <TableCell sx={{ maxWidth: 180 }}>
         <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>
-          {row.column_name}
+          {field.name}
         </Typography>
         <Chip
-          label={row.data_type}
+          label={field.data_type}
           size="small"
           variant="outlined"
           sx={{ height: 18, fontSize: 11, mt: 0.5 }}
         />
       </TableCell>
 
-      <TableCell sx={{ maxWidth: 260 }}>
+      <TableCell sx={{ maxWidth: 240 }}>
         {editing ? (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             <TextField
@@ -82,31 +84,39 @@ export default function ExtractedValueRowItem({
             </Box>
           </Box>
         ) : (
-          // llm_value is frozen at extraction time and is the only record of
-          // what the model said once a human edits the working value — worth
-          // surfacing, but not worth a column of its own.
-          <Tooltip title={`Model answered: ${row.llm_value ?? "null"}`}>
+          // llm_value is the frozen model answer and the only record of what was
+          // actually said once a human edits the working value.
+          <Tooltip title={`Model answered: ${field.llm_value ?? "null"}`}>
             <Box sx={{ display: "inline-block" }}>
-              <ExtractedValueCell row={row} />
+              <ExtractedValueCell field={field} pendingValue={pendingValue} />
             </Box>
           </Tooltip>
         )}
       </TableCell>
 
-      <TableCell sx={{ maxWidth: 240, ...HIDE_ON_MOBILE }}>
-        <SourceQuoteCell row={row} />
+      <TableCell sx={{ maxWidth: 220 }}>
+        <SourceQuoteCell
+          field={field}
+          active={active}
+          onQuoteClick={onQuoteClick}
+        />
       </TableCell>
 
       <TableCell>
-        <ReviewStatusChip status={row.review_status} />
+        <ReviewStatusChip status={status} pending={pending} />
       </TableCell>
 
       <TableCell align="right">
         <ReviewActions
-          status={row.review_status}
-          onAccept={() => onAccept(row.id)}
+          status={status}
+          // Accepting submits llm_value, NOT the displayed value_text. The server
+          // marks a field accepted only when the submitted string equals
+          // llm_value, and coerce() has already stripped the model's decoration
+          // from value_text — "{$12,480.50}" vs "$12,480.50". Sending what is on
+          // screen would come back as "edited" for every number and enum.
+          onAccept={() => onSetValue(field.column_id, field.llm_value)}
           onEdit={startEdit}
-          onReject={() => onReject(row.id)}
+          onReject={() => onSetValue(field.column_id, null)}
         />
       </TableCell>
     </TableRow>

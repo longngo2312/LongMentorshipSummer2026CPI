@@ -72,33 +72,59 @@ export interface UploadItem {
   status: "pending" | "uploading" | "done" | "error";
   error?: string;
 }
-
-//extracted document interface
+// --- Review (GET/PATCH /api/documents/:id/review) ---
+// Mirrors api/.../features/extraction/models/extraction.model.ts. These replace
+// the old ExtractedValueRow/ExtractedDocument, which described the deleted
+// /api/extraction/:id endpoint.
 
 export type DataType = "text" | "number" | "date" | "boolean" | "enum";
 
-export interface ExtractedValueRow {
-  id: number;
-  document_id: number;
+export type MatchKind = "exact" | "normalized" | "none";
+
+export type ReviewStatus = "unreviewed" | "accepted" | "edited" | "rejected";
+
+export interface ReviewField {
   column_id: number;
-  column_name: string;
+  name: string;
   data_type: DataType;
-  position: number;
+  enum_options: string[] | null;
+  /** The raw model answer, frozen at extraction time. */
   llm_value: string | null;
   llm_quote: string | null;
+  /** The working value — what the reviewer sees and edits. */
   value_text: string | null;
-  value_number: number | null;
-  value_date: string | null;
   source_page: number | null;
+  /** Offsets into the matching ReviewPage.text. Null when match_kind is "none". */
   source_start: number | null;
   source_end: number | null;
-  match_kind: "exact" | "normalized" | "none" | null;
+  match_kind: MatchKind | null;
   confidence: number | null;
-  review_status: "unreviewed" | "accepted" | "edited" | "rejected";
-  reviewed_at: string | null;
+  review_status: ReviewStatus;
 }
-export interface ExtractedDocument {
-  document_id: number;
-  status: DocumentStatus;
-  values: ExtractedValueRow[];
+
+export interface ReviewPage {
+  page: number;
+  source: "text" | "ocr";
+  text: string;
+}
+
+export interface ReviewPayload {
+  document: DocumentListItem;
+  pages: ReviewPage[];
+  fields: ReviewField[];
+}
+
+export interface ReviewEdit {
+  column_id: number;
+  value: string | null;
+}
+
+/** The one piece of state linking the review panel to the document viewer. */
+export interface ActiveQuote {
+  columnId: number;
+  quote: string;
+  pageNumber: number;
+  /** Present when the server located the quote in the parsed page text. */
+  start: number | null;
+  end: number | null;
 }
