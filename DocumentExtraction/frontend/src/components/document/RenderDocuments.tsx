@@ -69,9 +69,16 @@ export default function RenderDocuments({
             {documents.map((document) => (
               <TableRow key={document.id} hover>
                 <TableCell sx={{ maxWidth: 280 }}>
-                  <Typography variant="body2" noWrap title={document.filename}>
+                  <MuiLink
+                    component={RouterLink}
+                    to={`/documents/${document.id}`}
+                    variant="body2"
+                    noWrap
+                    title={document.filename}
+                    sx={{ display: "block" }}
+                  >
                     {document.filename}
-                  </Typography>
+                  </MuiLink>
                 </TableCell>
 
                 <TableCell>

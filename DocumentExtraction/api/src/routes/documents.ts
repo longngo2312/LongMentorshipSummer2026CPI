@@ -6,6 +6,11 @@ import {
   listDocuments,
   uploadDocument,
 } from "../features/document/controllers/document.controller..js";
+import {
+  getDocumentFile,
+  getReview,
+  saveReview,
+} from "../features/extraction/controllers/review.controller.js";
 import { uploadMiddleware } from "../features/document/utils/storage.util.js";
 import { requireAuth } from "../middleware/auth.js";
 
@@ -16,6 +21,9 @@ router.use(requireAuth);
 router.post("/", uploadMiddleware.single("file"), uploadDocument);
 router.get("/", listDocuments);
 router.get("/:id", getDocument);
+router.get("/:id/file", getDocumentFile);
+router.get("/:id/review", getReview);
+router.patch("/:id/review", saveReview);
 router.delete("/:id", deleteDocument);
 
 // Multer rejects (e.g. the size limit) surface as thrown errors rather than as

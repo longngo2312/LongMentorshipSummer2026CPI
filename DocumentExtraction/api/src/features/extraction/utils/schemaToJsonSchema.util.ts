@@ -33,13 +33,19 @@ export function schemaToJsonSchema(columns: SchemaColumns[]): SchemaJson {
   for (const col of columns) {
     const slug = slugify(col.name, usedSlugs);
 
-    // Enum columns get a real enum constraint — free correctness from the grammar
+    // Every property is { value, quote, page }. The quote/page fields let the
+    // server verify provenance after extraction.
+    const quoteProps = {
+      quote: { type: ["string", "null"] },
+      page: { type: ["integer", "null"] },
+    };
+
     if (col.data_type === "enum" && col.enum_options) {
       const options: string[] = JSON.parse(col.enum_options);
       properties[slug] = {
         type: "object",
-        properties: { value: { enum: [...options, null] } },
-        required: ["value"],
+        properties: { value: { enum: [...options, null] }, ...quoteProps },
+        required: ["value", "quote", "page"],
         additionalProperties: false,
       };
 
@@ -50,11 +56,10 @@ export function schemaToJsonSchema(columns: SchemaColumns[]): SchemaJson {
           : `- ${slug} (enum: ${enumList})`,
       );
     } else {
-      // Everything else is string|null — we coerce in step 14, not here
       properties[slug] = {
         type: "object",
-        properties: { value: { type: ["string", "null"] } },
-        required: ["value"],
+        properties: { value: { type: ["string", "null"] }, ...quoteProps },
+        required: ["value", "quote", "page"],
         additionalProperties: false,
       };
 

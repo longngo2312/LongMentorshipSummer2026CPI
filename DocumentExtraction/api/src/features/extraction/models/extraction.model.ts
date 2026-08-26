@@ -1,4 +1,7 @@
-import { DocumentRecord } from "../../document/models/document.model.js";
+import {
+  DocumentListItem,
+  DocumentRecord,
+} from "../../document/models/document.model.js";
 import type { SchemaColumns } from "../../schema/models/schema.model.js";
 
 export interface DocumentText {
@@ -51,5 +54,40 @@ export interface SchemaJson {
 }
 
 export interface LlmFieldAnswer {
+  value: string | null;
+  quote: string | null;
+  page: number | null;
+}
+
+// --- Review types (for the split-panel review API) ---
+
+export interface ReviewField {
+  column_id: number;
+  name: string;
+  data_type: SchemaColumns["data_type"];
+  enum_options: string[] | null;
+  llm_value: string | null;
+  llm_quote: string | null;
+  value_text: string | null;
+  source_page: number | null;
+  match_kind: MatchKind | null;
+  confidence: number | null;
+  review_status: ReviewStatus;
+}
+
+export interface ReviewPage {
+  page: number;
+  source: "text" | "ocr";
+  text: string;
+}
+
+export interface ReviewPayload {
+  document: DocumentListItem;
+  pages: ReviewPage[];
+  fields: ReviewField[];
+}
+
+export interface ReviewEdit {
+  column_id: number;
   value: string | null;
 }

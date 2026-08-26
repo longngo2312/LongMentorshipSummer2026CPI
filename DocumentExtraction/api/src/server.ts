@@ -4,7 +4,7 @@ import express from "express";
 import { startWorker } from "./features/extraction/worker.js";
 import authRoutes from "./routes/auth.js";
 import documentRoutes from "./routes/documents.js";
-import extractionRoutes from "./routes/extraction.js";
+
 import schemaRoutes from "./routes/schema.js";
 const app = express();
 const PORT = 3000;
@@ -24,7 +24,7 @@ app.use((req, _res, next) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/schemas", schemaRoutes);
 app.use("/api/documents", documentRoutes);
-app.use("/api/extraction", extractionRoutes);
+
 //worker
 startWorker();
 app.listen(PORT, () => {

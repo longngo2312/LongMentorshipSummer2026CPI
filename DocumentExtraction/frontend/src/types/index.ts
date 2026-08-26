@@ -34,7 +34,15 @@ export interface User {
   email: string;
 }
 
-export type DocumentStatus = "uploaded" | "processing" | "extracted" | "failed";
+// Mirrors the union in api/.../document.model.ts — the CHECK constraint was
+// dropped from the documents table, so this is the only thing enforcing it.
+export type DocumentStatus =
+  | "uploaded"
+  | "processing"
+  | "extracted"
+  | "reviewed"
+  | "indexed"
+  | "failed";
 
 //Shape returned by POST /documents
 export interface DocumentRecord {
@@ -92,5 +100,5 @@ export interface ExtractedValueRow {
 export interface ExtractedDocument {
   document_id: number;
   status: DocumentStatus;
-  value: ExtractedValueRow[];
+  values: ExtractedValueRow[];
 }

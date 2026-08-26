@@ -18,7 +18,7 @@ export const OllamaProvider: LlmProvider = {
         options: {
           temperature: 0,
           num_ctx: 8192,
-          num_predict: 1024,
+          num_predict: 2048,
         },
       }),
       signal: AbortSignal.timeout(120_000),

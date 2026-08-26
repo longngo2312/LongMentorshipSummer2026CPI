@@ -32,7 +32,7 @@ function AppRouter() {
             <Route path="/schemas/:id" element={<SchemaDetailPage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/documents" element={<DocumentGridPage />} />
-            <Route path="/docuemnts/:id" element={<ExtractedDocumentPage />} />
+            <Route path="/documents/:id" element={<ExtractedDocumentPage />} />
             <Route path="/query" element={<QueryPage />} />
             <Route path="/" element={<Navigate to="/schemas" replace />} />
           </Route>

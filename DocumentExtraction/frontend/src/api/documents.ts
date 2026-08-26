@@ -1,8 +1,4 @@
-import type {
-  DocumentListItem,
-  ExtractedDocument,
-  UploadResponse,
-} from "../types";
+import type { DocumentListItem, UploadResponse } from "../types";
 import { apiFetch } from "./client";
 
 export function uploadDocument(file: File, schemaId: number) {
@@ -31,8 +27,4 @@ export function deleteDocument(id: number) {
   return apiFetch<void>(`/documents/${id}`, {
     method: "DELETE",
   });
-}
-
-export function getExtractedDocumentValue(id: number) {
-  return apiFetch<ExtractedDocument>(`/extraction/${id}`);
 }

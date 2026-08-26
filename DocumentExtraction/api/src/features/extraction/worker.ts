@@ -91,8 +91,9 @@ async function runJob(job: ExtractionJob | undefined) {
     completeJob(job.id);
   } catch (error) {
     const permanent =
-      error instanceof ParsingError &&
-      (error.code === "unsupported" || error.code === "encrypted");
+      (error instanceof ParsingError &&
+        (error.code === "unsupported" || error.code === "encrypted")) ||
+      (error as { permanent?: boolean })?.permanent === true;
     const message = error instanceof Error ? error.message : String(error);
 
     const outcome = failJob(job.id, message, permanent);
