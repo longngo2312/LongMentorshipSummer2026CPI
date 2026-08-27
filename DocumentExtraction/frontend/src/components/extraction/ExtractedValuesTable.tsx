@@ -1,14 +1,4 @@
-import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 import type { ReviewField } from "../../types";
 import ExtractedValueRowItem from "./ExtractedValueRowItem";
 
@@ -29,8 +19,17 @@ export default function ExtractedValuesTable({
 }: ExtractedValuesTableProps) {
   if (fields.length === 0) {
     return (
-      <Paper variant="outlined" sx={{ p: 6, textAlign: "center" }}>
-        <Typography color="text.secondary">
+      <Paper
+        variant="outlined"
+        sx={{
+          p: 6,
+          textAlign: "center",
+          borderRadius: 2,
+          borderStyle: "dashed",
+          bgcolor: "#FAFBFC",
+        }}
+      >
+        <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
           Nothing extracted for this document yet.
         </Typography>
       </Paper>
@@ -38,39 +37,21 @@ export default function ExtractedValuesTable({
   }
 
   return (
-    <Box sx={{ overflowX: "auto" }}>
-      <TableContainer component={Paper} variant="outlined">
-        <Table size="small" sx={{ minWidth: 620 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>Field</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Value</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Source</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Review</TableCell>
-              <TableCell sx={{ fontWeight: 700 }} align="right">
-                {/* actions */}
-              </TableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {fields.map((field) => (
-              <ExtractedValueRowItem
-                key={field.column_id}
-                field={field}
-                pendingValue={
-                  edits.has(field.column_id)
-                    ? edits.get(field.column_id)
-                    : undefined
-                }
-                active={activeColumnId === field.column_id}
-                onQuoteClick={onQuoteClick}
-                onSetValue={onSetValue}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      {fields.map((field) => (
+        <ExtractedValueRowItem
+          key={field.column_id}
+          field={field}
+          pendingValue={
+            edits.has(field.column_id)
+              ? edits.get(field.column_id)
+              : undefined
+          }
+          active={activeColumnId === field.column_id}
+          onQuoteClick={onQuoteClick}
+          onSetValue={onSetValue}
+        />
+      ))}
     </Box>
   );
 }

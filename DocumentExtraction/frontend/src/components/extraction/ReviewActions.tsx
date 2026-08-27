@@ -18,36 +18,87 @@ export default function ReviewActions({
   onReject,
 }: ReviewActionsProps) {
   return (
-    <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-      <Tooltip title="Accept">
+    <Box
+      sx={{
+        display: "inline-flex",
+        gap: "2px",
+        bgcolor: "#F1F5F9",
+        borderRadius: 1.5,
+        p: "2px",
+      }}
+    >
+      <Tooltip title="Accept" arrow>
         <IconButton
           size="small"
-          // Filled once chosen, so a reviewer scanning the column can see which
-          // rows they have already ruled on without reading the status chip.
-          color={status === "accepted" ? "success" : "default"}
           onClick={onAccept}
+          sx={{
+            borderRadius: 1,
+            width: 30,
+            height: 30,
+            ...(status === "accepted"
+              ? {
+                  bgcolor: "success.main",
+                  color: "#FFFFFF",
+                  "&:hover": { bgcolor: "success.dark" },
+                }
+              : {
+                  color: "text.secondary",
+                  "&:hover": { bgcolor: "#E2E8F0", color: "success.main" },
+                }),
+            transition: "all 150ms ease",
+          }}
         >
-          <CheckIcon fontSize="small" />
+          <CheckIcon sx={{ fontSize: 16 }} />
         </IconButton>
       </Tooltip>
 
-      <Tooltip title="Edit">
+      <Tooltip title="Edit" arrow>
         <IconButton
           size="small"
-          color={status === "edited" ? "info" : "default"}
           onClick={onEdit}
+          sx={{
+            borderRadius: 1,
+            width: 30,
+            height: 30,
+            ...(status === "edited"
+              ? {
+                  bgcolor: "secondary.main",
+                  color: "#FFFFFF",
+                  "&:hover": { bgcolor: "secondary.dark" },
+                }
+              : {
+                  color: "text.secondary",
+                  "&:hover": { bgcolor: "#E2E8F0", color: "secondary.main" },
+                }),
+            transition: "all 150ms ease",
+          }}
         >
-          <EditIcon fontSize="small" />
+          <EditIcon sx={{ fontSize: 16 }} />
         </IconButton>
       </Tooltip>
 
-      <Tooltip title="Reject">
+      <Tooltip title="Reject" arrow>
         <IconButton
           size="small"
-          color={status === "rejected" ? "error" : "default"}
           onClick={onReject}
+          sx={{
+            borderRadius: 1,
+            width: 30,
+            height: 30,
+            ...(status === "rejected"
+              ? {
+                  bgcolor: "error.main",
+                  color: "#FFFFFF",
+                  "&:hover": { bgcolor: "error.dark" },
+                }
+              : {
+                  color: "text.secondary",
+                  "&:hover": { bgcolor: "#E2E8F0", color: "error.main" },
+                }),
+            transition: "all 150ms ease",
+          }}
         >
-          <CloseIcon fontSize="small" />
+          <CloseIcon sx={{ fontSize: 16 }} />
         </IconButton>
       </Tooltip>
     </Box>

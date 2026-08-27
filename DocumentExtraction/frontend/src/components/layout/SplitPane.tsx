@@ -1,9 +1,5 @@
-import { Box, Tab, Tabs, useMediaQuery, useTheme } from "@mui/material";
-import { useCallback, useRef, useState } from "react";
+import { Box, Divider, Tab, Tabs, useMediaQuery, useTheme } from "@mui/material";
 import type { ReactNode } from "react";
-
-const MIN_PERCENT = 25;
-const MAX_PERCENT = 75;
 
 export type SplitPaneTab = "left" | "right";
 
@@ -16,12 +12,12 @@ interface SplitPaneProps {
    *  to the document pane when the reviewer clicks a quote. */
   mobileTab: SplitPaneTab;
   onMobileTabChange: (tab: SplitPaneTab) => void;
-  initialLeftPercent?: number;
 }
 
 /**
- * Two panes with a draggable divider, collapsing to tabs under `md` — a 45%
- * panel on a phone is unusable for both reading a document and editing values.
+ * Two equal-width panes separated by a thin divider, collapsing to tabs under
+ * `md` — a 50% panel on a phone is unusable for both reading a document and
+ * editing values.
  */
 export default function SplitPane({
   left,
@@ -30,23 +26,9 @@ export default function SplitPane({
   rightLabel,
   mobileTab,
   onMobileTabChange,
-  initialLeftPercent = 55,
 }: SplitPaneProps) {
   const theme = useTheme();
   const isNarrow = useMediaQuery(theme.breakpoints.down("md"));
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [leftPercent, setLeftPercent] = useState(initialLeftPercent);
-  const [dragging, setDragging] = useState(false);
-
-  const handlePointerMove = useCallback((event: React.PointerEvent) => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const bounds = container.getBoundingClientRect();
-    const percent = ((event.clientX - bounds.left) / bounds.width) * 100;
-    setLeftPercent(Math.min(MAX_PERCENT, Math.max(MIN_PERCENT, percent)));
-  }, []);
 
   if (isNarrow) {
     return (
@@ -55,7 +37,18 @@ export default function SplitPane({
           value={mobileTab}
           onChange={(_event, value) => onMobileTabChange(value as SplitPaneTab)}
           variant="fullWidth"
-          sx={{ borderBottom: 1, borderColor: "divider", flexShrink: 0 }}
+          sx={{
+            borderBottom: 1,
+            borderColor: "divider",
+            flexShrink: 0,
+            bgcolor: "background.paper",
+            "& .MuiTab-root": {
+              fontWeight: 600,
+              fontSize: "0.8rem",
+              letterSpacing: "0.03em",
+              textTransform: "uppercase",
+            },
+          }}
         >
           <Tab value="left" label={leftLabel} />
           <Tab value="right" label={rightLabel} />
@@ -68,45 +61,25 @@ export default function SplitPane({
   }
 
   return (
-    <Box
-      ref={containerRef}
-      sx={{ display: "flex", height: "100%", minHeight: 0 }}
-      // Move and up are handled on the container, not the divider: the pointer
-      // routinely outruns a 6px handle during a fast drag.
-      onPointerMove={dragging ? handlePointerMove : undefined}
-      onPointerUp={() => setDragging(false)}
-      onPointerLeave={() => setDragging(false)}
-    >
-      <Box sx={{ width: `${leftPercent}%`, minWidth: 0, overflow: "hidden" }}>
+    <Box sx={{ display: "flex", height: "100%", minHeight: 0 }}>
+      {/* Left pane — document viewer (50%) */}
+      <Box
+        sx={{
+          width: "50%",
+          minWidth: 0,
+          overflow: "hidden",
+          bgcolor: "#F1F5F9",
+        }}
+      >
         {left}
       </Box>
 
-      <Box
-        onPointerDown={() => setDragging(true)}
-        sx={{
-          flexShrink: 0,
-          width: 6,
-          cursor: "col-resize",
-          bgcolor: dragging ? "primary.main" : "divider",
-          transition: dragging ? "none" : "background-color 120ms",
-          "&:hover": { bgcolor: "primary.light" },
-        }}
-      />
+      <Divider orientation="vertical" flexItem />
 
-      <Box sx={{ flexGrow: 1, minWidth: 0, overflow: "hidden" }}>{right}</Box>
-
-      {/* While dragging, the pointer crossing the PDF or the table would
-          otherwise start a text selection and fight the drag. */}
-      {dragging && (
-        <Box
-          sx={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 10,
-            cursor: "col-resize",
-          }}
-        />
-      )}
+      {/* Right pane — review panel (50%) */}
+      <Box sx={{ width: "50%", minWidth: 0, overflow: "hidden" }}>
+        {right}
+      </Box>
     </Box>
   );
 }

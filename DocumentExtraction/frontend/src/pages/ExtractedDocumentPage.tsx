@@ -1,16 +1,12 @@
 import { Alert, Box, CircularProgress, Paper } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import ReviewPanel from "../components/extraction/ReviewPanel";
-import SplitPane from "../components/layout/SplitPane";
-import type { SplitPaneTab } from "../components/layout/SplitPane";
-import DocumentViewerPanel from "../components/viewer/DocumentViewerPanel";
 import { getReview, saveReview } from "../api/documents";
-import { MOCK_REVIEW } from "../mocks/review.mock";
+import ReviewPanel from "../components/extraction/ReviewPanel";
+import type { SplitPaneTab } from "../components/layout/SplitPane";
+import SplitPane from "../components/layout/SplitPane";
+import DocumentViewerPanel from "../components/viewer/DocumentViewerPanel";
 import type { ActiveQuote, ReviewField, ReviewPayload } from "../types";
-
-// Lets the UI be worked on without a running API or a loaded model.
-const USE_MOCK = import.meta.env.VITE_MOCK_REVIEW === "true";
 
 export default function ExtractedDocumentPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,11 +29,9 @@ export default function ExtractedDocumentPage() {
   const [mobileTab, setMobileTab] = useState<SplitPaneTab>("right");
 
   const load = useCallback(() => {
-    const fetching = USE_MOCK
-      ? Promise.resolve(MOCK_REVIEW)
-      : getReview(documentId);
-
-    return fetching
+    // Every setState sits inside a .then so none of them run synchronously
+    // within the effect that calls this.
+    return getReview(documentId)
       .then((data) => {
         setPayload(data);
         setEdits(new Map());
@@ -100,27 +94,45 @@ export default function ExtractedDocumentPage() {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          py: 12,
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
+        <CircularProgress size={36} sx={{ color: "primary.main" }} />
       </Box>
     );
   }
 
   if (loadError || !payload) {
-    return <Alert severity="error">{loadError ?? "Document not found."}</Alert>;
+    return (
+      <Alert severity="error" sx={{ borderRadius: 2 }}>
+        {loadError ?? "Document not found."}
+      </Alert>
+    );
   }
 
   const activeField =
-    payload.fields.find(
-      (field) => field.column_id === activeQuote?.columnId,
-    ) ?? null;
+    payload.fields.find((field) => field.column_id === activeQuote?.columnId) ??
+    null;
 
   return (
     <Paper
       variant="outlined"
-      // flexGrow against the Layout container's column flex, so the split fills
-      // the viewport instead of collapsing to its content height.
-      sx={{ flexGrow: 1, minHeight: 0, overflow: "hidden" }}
+      sx={{
+        flexGrow: 1,
+        minHeight: 0,
+        overflow: "hidden",
+        borderRadius: 2,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+        border: "1px solid",
+        borderColor: "divider",
+      }}
     >
       <SplitPane
         leftLabel="Document"

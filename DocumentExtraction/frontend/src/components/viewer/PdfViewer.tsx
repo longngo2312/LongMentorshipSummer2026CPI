@@ -13,7 +13,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-const PAGE_GUTTER = 32;
+const PAGE_GUTTER = 8;
 
 interface PdfViewerProps {
   url: string;
@@ -83,7 +83,7 @@ export default function PdfViewer({
         </Alert>
       )}
 
-      <Box ref={scrollRef} sx={{ flexGrow: 1, minHeight: 0, overflow: "auto", p: 2 }}>
+      <Box ref={scrollRef} sx={{ flexGrow: 1, minHeight: 0, overflow: "auto", p: 0.5 }}>
         {error ? (
           <Alert severity="error">{error}</Alert>
         ) : (

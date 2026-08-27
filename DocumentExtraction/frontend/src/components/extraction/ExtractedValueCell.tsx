@@ -19,8 +19,11 @@ export default function ExtractedValueCell({
     return (
       <Typography
         variant="body2"
-        color="text.disabled"
-        sx={{ fontStyle: "italic" }}
+        sx={{
+          fontStyle: "italic",
+          color: pendingValue === null ? "error.main" : "text.disabled",
+          fontWeight: pendingValue === null ? 500 : 400,
+        }}
       >
         {pendingValue === null ? "Rejected" : "Not found"}
       </Typography>
@@ -34,13 +37,28 @@ export default function ExtractedValueCell({
         size="small"
         variant="outlined"
         color={value === "true" ? "success" : "default"}
+        sx={{ fontWeight: 500 }}
       />
     );
   }
 
   if (field.data_type === "enum") {
-    return <Chip label={value} size="small" variant="outlined" />;
+    return (
+      <Chip
+        label={value}
+        size="small"
+        variant="outlined"
+        sx={{ fontWeight: 500, borderColor: "#CBD5E1" }}
+      />
+    );
   }
 
-  return <Typography variant="body2">{value}</Typography>;
+  return (
+    <Typography
+      variant="body2"
+      sx={{ fontWeight: 500, color: "text.primary" }}
+    >
+      {value}
+    </Typography>
+  );
 }

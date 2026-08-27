@@ -27,6 +27,12 @@ export default function DocumentStatusChip({
       color={chip.color}
       size="small"
       variant={status === "uploaded" ? "outlined" : "filled"}
+      sx={{
+        fontWeight: 600,
+        fontSize: "0.65rem",
+        height: 22,
+        letterSpacing: "0.02em",
+      }}
     />
   );
 }
