@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TENANTS_DIR = path.join(__dirname, "../../db/tenant");
-const UPLOADS_DIR = path.join(TENANTS_DIR, "uploads");
 
 export function openTenantDB(tenantDBPath: string) {
   const db = new Database(tenantDBPath);
@@ -15,12 +14,14 @@ export function openTenantDB(tenantDBPath: string) {
   db.exec(
     // Create tables for each users
     `   
+        DROP TABLE IF EXISTS extractedDocumentText;
+ 
         CREATE TABLE IF NOT EXISTS document_schemas (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            name        TEXT NOT NULL UNIQUE,
-            description TEXT,
-            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-            updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            name         TEXT NOT NULL UNIQUE,
+            description  TEXT,
+            created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
         );
 
         CREATE TABLE IF NOT EXISTS schema_columns (
@@ -29,7 +30,7 @@ export function openTenantDB(tenantDBPath: string) {
             name         TEXT NOT NULL,
             description  TEXT,
             data_type    TEXT NOT NULL DEFAULT 'text'
-                        CHECK(data_type IN ('text','number','date','boolean','enum')),
+                         CHECK(data_type IN ('text','number','date','boolean','enum')),
             enum_options TEXT,
             required     INTEGER NOT NULL DEFAULT 0,
             position     INTEGER NOT NULL DEFAULT 0
@@ -42,12 +43,48 @@ export function openTenantDB(tenantDBPath: string) {
             mime_type    TEXT NOT NULL,
             storage_path TEXT NOT NULL,          -- server-generated, never client input
             size_bytes   INTEGER NOT NULL,
-            status       TEXT NOT NULL DEFAULT 'uploaded'
-                        CHECK(status IN ('uploaded','processing','extracted','failed')),
+            status       TEXT NOT NULL DEFAULT 'uploaded',
             uploaded_at  TEXT NOT NULL DEFAULT (datetime('now'))
         );
         CREATE INDEX IF NOT EXISTS idx_documents_schema ON documents(schema_id);
-    `,
+
+        CREATE TABLE IF NOT EXISTS parsedDocumentText (
+            document_id  INTEGER NOT NULL PRIMARY KEY REFERENCES documents(id) ON DELETE CASCADE,
+            text         TEXT NOT NULL,
+            pages_json   TEXT NOT NULL,   -- [{ page, text, source, label? }] — the review payload
+            spans_json   TEXT NOT NULL DEFAULT '[]',  -- [{ page, width, height, spans }] — extraction only
+            page_count   INTEGER NOT NULL,
+            char_count   INTEGER NOT NULL, 
+            method       TEXT NOT NULL,
+            parsed_at    TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+
+        CREATE TABLE IF NOT EXISTS extracted_values (
+            id INTEGER   PRIMARY KEY AUTOINCREMENT,
+            document_id  INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+            column_id    INTEGER NOT NULL REFERENCES schema_columns(id) ON DELETE CASCADE, 
+            llm_value    TEXT,
+            llm_quote    TEXT, 
+            value_text   TEXT, 
+            value_number REAL,
+            value_date   TEXT,
+            source_page  INTEGER,
+            source_start INTEGER, 
+            source_end   INTEGER, 
+            source_span_ids TEXT,   -- JSON number[], null when nothing was located
+            source_boxes    TEXT,   -- JSON NormalizedBox[], null for formats with no geometry
+            match_kind   TEXT CHECK(match_kind IN ('exact', 'normalized', 'none')),
+            confidence   REAL,
+            review_status TEXT NOT NULL DEFAULT 'unreviewed'
+                          CHECK(review_status IN ('unreviewed', 'accepted', 'edited', 'rejected')),
+            reviewed_at  TEXT, 
+            UNIQUE(document_id, column_id)   
+        );
+
+
+        CREATE INDEX IF NOT EXISTS idx_values_document ON extracted_values(document_id);
+    `, //pages_json` is `JSON.stringify(result.pages)
   );
   return db;
 }
@@ -63,14 +100,6 @@ export function provisionTenantDB(userId: number): string {
   const dbPath = tenantDBPath(userId);
   openTenantDB(dbPath);
   return dbPath;
-}
-
-export function tenantUploadDir(userId: number): string {
-  const dir = path.join(UPLOADS_DIR, `user_${userId}`);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  return dir;
 }
 
 export function getTenantDb(userId: number) {

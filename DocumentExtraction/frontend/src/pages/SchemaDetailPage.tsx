@@ -3,8 +3,8 @@ import { Alert, Box, Button, CircularProgress, Container } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getSchema } from "../api/schema";
-import RenderSchemaGrid from "../components/RenderSchemaGrid";
-import SchemaBuilder from "../components/SchemaBuilder";
+import RenderSchemaGrid from "../components/schema/RenderSchemaGrid";
+import SchemaBuilder from "../components/schema/SchemaBuilder";
 import type { SchemaDetail } from "../types";
 
 export default function SchemaDetailPage() {
