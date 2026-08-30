@@ -4,13 +4,44 @@ export type ParseMethod =
   | "pdf-ocr"
   | "pdf-hybrid"
   | "image-ocr"
-  | "office"
+  | "docx"
+  | "xlsx"
+  | "pptx"
   | "plain";
+
+/** Normalized to 0..1 against the page box, origin top-left. Render-scale independent. */
+export type NormalizedBox = [x0: number, y0: number, x1: number, y1: number];
+
+export interface ParsedSpan {
+  /** Unique within the document, not the page — the counter is threaded through the parse. */
+  id: number;
+  /** [start, end) into ParsedPage.text. */
+  start: number;
+  end: number;
+  /** null for formats with no recoverable geometry (office, plain text). */
+  bbox: NormalizedBox | null;
+  /**
+   * Format-native address, when one exists — a spreadsheet cell ("B7").
+   * For a spreadsheet this *is* the provenance answer, the way a rect is for a
+   * PDF: without it a quote's origin is only ever "somewhere in Sheet 2".
+   */
+  ref?: string;
+}
 
 export interface ParsedPage {
   text: string;
   page: number;
   source: "text" | "ocr";
+  /**
+   * Positioned pieces of `text`, in the order they were read. Assembled in the
+   * same loop that built `text` — see the invariant in docs/phase5.
+   */
+  spans: ParsedSpan[];
+  /** Page box in its own units — points for PDF, pixels for images, 0 for office. */
+  width: number;
+  height: number;
+  /** Human name for the unit when "page N" is wrong: "Q3 Actuals", "Slide 4". */
+  label?: string;
 }
 
 export interface ParsedDocument {

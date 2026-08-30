@@ -59,10 +59,10 @@ export default function ExtractedDocumentPage() {
     setActiveQuote({
       columnId: field.column_id,
       quote: field.llm_quote,
-      // Single-page formats (office, images, plain text) carry no page number.
       pageNumber: field.source_page ?? 1,
       start: field.source_start,
       end: field.source_end,
+      boxes: field.source_boxes,
     });
     // On a phone the document is behind a tab, so a click that only sets state
     // would look like nothing happened.

@@ -1,12 +1,4 @@
-import {
-  Box,
-  Button,
-  Chip,
-  Paper,
-  TextField,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Chip, Paper, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import type { ReviewField } from "../../types";
 import { projectStatus } from "../../utils/extractedValue";
@@ -46,7 +38,8 @@ export default function ExtractedValueRowItem({
   const borderColor = STATUS_BORDER_COLOR[status] ?? "#E2E8F0";
 
   function startEdit() {
-    const current = pendingValue === undefined ? field.value_text : pendingValue;
+    const current =
+      pendingValue === undefined ? field.value_text : pendingValue;
     setDraft(current ?? "");
     setEditing(true);
   }
@@ -64,11 +57,7 @@ export default function ExtractedValueRowItem({
         borderRadius: 1.5,
         overflow: "hidden",
         transition: "all 150ms ease",
-        bgcolor: active
-          ? "#EFF6FF"
-          : pending
-            ? "#FFFBEB"
-            : "background.paper",
+        bgcolor: active ? "#EFF6FF" : pending ? "#FFFBEB" : "background.paper",
         "&:hover": {
           boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
         },
@@ -185,11 +174,12 @@ export default function ExtractedValueRowItem({
               </Box>
             </Box>
           ) : (
-            <Tooltip title={`Model answered: ${field.llm_value ?? "null"}`}>
-              <Box sx={{ display: "inline-block" }}>
-                <ExtractedValueCell field={field} pendingValue={pendingValue} />
-              </Box>
-            </Tooltip>
+            // No hover tooltip on the value: it covered the rows underneath on
+            // the way to a click. The Box stays — it was the tooltip's anchor,
+            // but its inline-block is also what sizes the cell.
+            <Box sx={{ display: "inline-block" }}>
+              <ExtractedValueCell field={field} pendingValue={pendingValue} />
+            </Box>
           )}
         </Box>
 

@@ -3,8 +3,10 @@ export const EXTRACTED_VALUES_SQL = {
         INSERT INTO extracted_values (
             document_id, column_id, llm_value, llm_quote,
             value_text, value_number, value_date,
-            source_page, source_start, source_end, match_kind, confidence
-        ) VALUES(?,?,?,?, ?,?,?, ?,?,?,?,?)
+            source_page, source_start, source_end,
+            source_span_ids, source_boxes,
+            match_kind, confidence
+        ) VALUES(?,?,?,?, ?,?,?, ?,?,?, ?,?, ?,?)
         ON CONFLICT(document_id, column_id) DO UPDATE SET
             llm_value    = excluded.llm_value,
             llm_quote    = excluded.llm_quote,
@@ -14,6 +16,8 @@ export const EXTRACTED_VALUES_SQL = {
             source_page  = excluded.source_page,
             source_start = excluded.source_start,
             source_end   = excluded.source_end,
+            source_span_ids = excluded.source_span_ids,
+            source_boxes    = excluded.source_boxes,
             match_kind   = excluded.match_kind,
             confidence   = excluded.confidence,
             -- A re-extraction produces a brand new model answer, so any verdict
@@ -47,10 +51,14 @@ export const EXTRACTED_VALUES_SQL = {
             ev.source_page,
             -- Offsets into pages_json[source_page-1].text, which is the exact
             -- string ReviewPage.text hands the client — so the text viewer can
-            -- slice instead of searching. The PDF viewer cannot use these:
-            -- PDF.js tokenizes the page differently and has to re-find the quote.
+            -- slice instead of searching.
             ev.source_start,
             ev.source_end,
+            -- Normalized 0..1 rects, one per line, resolved server-side at
+            -- extraction. Null for formats with no geometry (office, plain
+            -- text), which is what sends the client down its search fallback.
+            ev.source_boxes,
+            ev.source_span_ids,
             ev.match_kind,
             ev.confidence,
             ev.review_status
@@ -60,6 +68,9 @@ export const EXTRACTED_VALUES_SQL = {
         ORDER BY sc.position;
     `,
 
+  // Deliberately does not touch source_* or llm_*: after a human edits a value,
+  // the stored quote and boxes still describe where the *model* looked, not
+  // where the correction came from. Provenance survives a review save intact.
   updateReviewedValue: `
         UPDATE extracted_values
         SET value_text     = ?,

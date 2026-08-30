@@ -87,9 +87,17 @@ export default function TextViewer({ pages, activeQuote }: TextViewerProps) {
       {pages.map((page) => (
         <Paper key={page.page} variant="outlined" sx={{ p: 2, mb: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+            {/* A spreadsheet's unit is a sheet and a deck's is a slide; the
+                number stays alongside so a page hint of 2 is still traceable
+                to what the reviewer is looking at. */}
             <Typography variant="caption" color="text.secondary">
-              Page {page.page}
+              {page.label ?? `Page ${page.page}`}
             </Typography>
+            {page.label && (
+              <Typography variant="caption" color="text.disabled">
+                p.{page.page}
+              </Typography>
+            )}
             {page.source === "ocr" && (
               <Chip
                 label="OCR"

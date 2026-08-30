@@ -1,8 +1,10 @@
 import path from "path";
 import { getImageText } from "./parsers/image.parser.js";
-import { getOfficeText } from "./parsers/office.parser.js";
+import { getDocxText } from "./parsers/docx.parser.js";
 import { getPdfText } from "./parsers/pdf.parser.js";
+import { getPptxText } from "./parsers/pptx.parser.js";
 import { getPlainText } from "./parsers/text.parser.js";
+import { getXlsxText } from "./parsers/xlsx.parser.js";
 import { ParsingError } from "./parsing.error.js";
 import type { ParserResult } from "./types.js";
 
@@ -19,11 +21,11 @@ const BY_MIME: Record<string, Parser> = {
   "image/tiff": getImageText,
 
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-    getOfficeText,
+    getDocxText,
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-    getOfficeText,
+    getXlsxText,
   "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-    getOfficeText,
+    getPptxText,
 
   "text/plain": getPlainText,
   "text/csv": getPlainText,
@@ -41,9 +43,9 @@ const BY_EXTENSION: Record<string, Parser> = {
   ".tif": getImageText,
   ".tiff": getImageText,
 
-  ".docx": getOfficeText,
-  ".xlsx": getOfficeText,
-  ".pptx": getOfficeText,
+  ".docx": getDocxText,
+  ".xlsx": getXlsxText,
+  ".pptx": getPptxText,
 
   ".txt": getPlainText,
   ".csv": getPlainText,

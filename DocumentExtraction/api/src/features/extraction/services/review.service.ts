@@ -24,6 +24,8 @@ interface ReviewFieldRow {
   source_page: number | null;
   source_start: number | null;
   source_end: number | null;
+  source_boxes: string | null;
+  source_span_ids: string | null;
   match_kind: string | null;
   confidence: number | null;
   review_status: string;
@@ -40,9 +42,11 @@ export function getReviewPayload(
     | undefined;
   if (!document) return undefined;
 
+  // Not getByDocumentId: that is SELECT * and would ship spans_json — roughly
+  // 1MB on a 20-page PDF — to the browser on every review load.
   const parsedText = db
-    .prepare(DOCUMENT_TEXT_SQL.getByDocumentId)
-    .get(documentId) as DocumentText | undefined;
+    .prepare(DOCUMENT_TEXT_SQL.getPagesForReview)
+    .get(documentId) as Omit<DocumentText, "spans_json"> | undefined;
 
   const pages: ParsedPage[] = parsedText
     ? JSON.parse(parsedText.pages_json)
@@ -63,6 +67,10 @@ export function getReviewPayload(
     source_page: row.source_page,
     source_start: row.source_start,
     source_end: row.source_end,
+    source_boxes: row.source_boxes ? JSON.parse(row.source_boxes) : null,
+    source_span_ids: row.source_span_ids
+      ? JSON.parse(row.source_span_ids)
+      : null,
     match_kind: row.match_kind as ReviewField["match_kind"],
     confidence: row.confidence,
     review_status: row.review_status as ReviewField["review_status"],
@@ -70,7 +78,12 @@ export function getReviewPayload(
 
   return {
     document,
-    pages: pages.map((p) => ({ page: p.page, source: p.source, text: p.text })),
+    pages: pages.map((p) => ({
+      page: p.page,
+      source: p.source,
+      text: p.text,
+      label: p.label,
+    })),
     fields,
   };
 }

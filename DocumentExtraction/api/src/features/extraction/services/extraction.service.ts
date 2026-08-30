@@ -6,7 +6,11 @@ import { SchemaColumns } from "../../schema/models/schema.model.js";
 import { SCHEMA_SQL } from "../../schema/sqls/schema.sql.js";
 import { LlmRequest } from "../llms/dtos.js";
 import { OllamaProvider } from "../llms/ollama.js";
-import { DocumentText, LlmFieldAnswer } from "../models/extraction.model.js";
+import {
+  DocumentText,
+  LlmFieldAnswer,
+  PageSpans,
+} from "../models/extraction.model.js";
 import { DOCUMENT_TEXT_SQL } from "../sql/documentText.sql.js";
 import { EXTRACTED_VALUES_SQL } from "../sql/extractedValues.sql.js";
 import { coerce } from "../utils/coerce.util.js";
@@ -100,6 +104,11 @@ export async function extractDocument(
   const answers = result as Record<string, unknown>;
   const columnsById = new Map(columns.map((col) => [col.id, col]));
   const pages: ParsedPage[] = JSON.parse(parsedText.pages_json);
+
+  // Geometry lives in its own column so the review payload can skip it.
+  const pageSpans: PageSpans[] = JSON.parse(parsedText.spans_json);
+  const spansByPage = new Map(pageSpans.map((p) => [p.page, p]));
+
   const upsert = db.prepare(EXTRACTED_VALUES_SQL.upsert);
 
   db.transaction(() => {
@@ -113,7 +122,12 @@ export async function extractDocument(
 
       const answer = readAnswer(answers, key);
       const coerced = coerce(answer.value, column.data_type, enumOptions);
-      const location = resolveQuote(answer.quote, pages, answer.page);
+      const location = resolveQuote(
+        answer.quote,
+        pages,
+        answer.page,
+        spansByPage,
+      );
 
       upsert.run(
         documentId,
@@ -126,6 +140,11 @@ export async function extractDocument(
         location.page,
         location.start,
         location.end,
+        // null rather than "[]": the frontend picks its search fallback on
+        // source_boxes being null, so "no geometry" and "geometry that came
+        // back empty" have to stay distinguishable.
+        location.spanIds.length ? JSON.stringify(location.spanIds) : null,
+        location.boxes.length ? JSON.stringify(location.boxes) : null,
         location.matchKind,
         location.confidence,
       );

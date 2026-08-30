@@ -26,8 +26,10 @@ export { shutdownOcr } from "./ocr/tesseract.js";
 export { ParsingError } from "./parsing.error.js";
 export { SUPPORTED_EXTENSIONS } from "./router.js";
 export type {
+  NormalizedBox,
   ParsedDocument,
   ParsedPage,
+  ParsedSpan,
   ParseMethod,
   ParserResult,
 } from "./types.js";

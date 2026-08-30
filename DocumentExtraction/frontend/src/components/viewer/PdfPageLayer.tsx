@@ -13,6 +13,10 @@ import HighlightOverlay from "./HighlightOverlay";
 // react-pdf renders the text layer into this container; the spans inside it are
 // in the same order as the page's text items, which is what the search relies on.
 const SPAN_SELECTOR = ".react-pdf__Page__textContent span";
+// The rendered page itself — the element the server's normalized coordinates
+// were measured against. The wrapper is width:fit-content so the two usually
+// agree, but "usually" is not what highlight coordinates should rest on.
+const PAGE_SELECTOR = ".react-pdf__Page";
 
 interface PdfPageLayerProps {
   pageNumber: number;
@@ -45,6 +49,33 @@ export default function PdfPageLayer({
       return;
     }
 
+    // Preferred path: the server resolved this quote against the parse itself,
+    // so there is nothing to search for — scale the normalized rects up to
+    // whatever size the page is currently rendered at.
+    if (activeQuote.boxes && activeQuote.boxes.length > 0) {
+      const page = wrapper.querySelector<HTMLElement>(PAGE_SELECTOR);
+      // Before the page paints there is nothing to scale against, and a zero
+      // would collapse every rect. Wait for the next render rather than
+      // reporting a miss.
+      if (!page || page.clientWidth === 0 || page.clientHeight === 0) {
+        setRects([]);
+        return;
+      }
+
+      setRects(
+        activeQuote.boxes.map(([x0, y0, x1, y1]) => ({
+          top: y0 * page.clientHeight,
+          left: x0 * page.clientWidth,
+          width: (x1 - x0) * page.clientWidth,
+          height: (y1 - y0) * page.clientHeight,
+        })),
+      );
+      onLocate(true);
+      return;
+    }
+
+    // Fallback, for a document the server could not give geometry for: find the
+    // quote in the text layer the browser rendered.
     const spans = Array.from(
       wrapper.querySelectorAll<HTMLElement>(SPAN_SELECTOR),
     );
@@ -90,10 +121,22 @@ export default function PdfPageLayer({
     return () => observer.disconnect();
   }, [locate]);
 
+  // Scroll once when a quote is picked, then leave the reader alone.
+  //
+  // Keyed on the ActiveQuote object, not on `rects`: locate() re-runs on every
+  // resize and text-layer repaint and hands back a fresh array each time, so a
+  // [rects] dependency re-centres the page underneath someone who is trying to
+  // scroll away from it. handleQuoteClick builds a new object per click, so
+  // clicking the same field again still returns them to it.
+  const scrolledFor = useRef<ActiveQuote | null>(null);
+
   useEffect(() => {
-    if (rects.length === 0) return;
+    if (rects.length === 0 || !activeQuote) return;
+    if (scrolledFor.current === activeQuote) return;
+
+    scrolledFor.current = activeQuote;
     markerRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, [rects]);
+  }, [rects, activeQuote]);
 
   return (
     <Box
@@ -112,6 +155,8 @@ export default function PdfPageLayer({
         width={width}
         renderTextLayer
         renderAnnotationLayer={false}
+        // Still the signal for the fallback path, and a reliable "the page has
+        // painted" nudge for the geometry path.
         onRenderTextLayerSuccess={() =>
           setTextLayerVersion((version) => version + 1)
         }

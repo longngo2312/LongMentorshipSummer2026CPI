@@ -83,6 +83,9 @@ export type MatchKind = "exact" | "normalized" | "none";
 
 export type ReviewStatus = "unreviewed" | "accepted" | "edited" | "rejected";
 
+/** Normalized to 0..1 against the page box, origin top-left. Scale independent. */
+export type NormalizedBox = [x0: number, y0: number, x1: number, y1: number];
+
 export interface ReviewField {
   column_id: number;
   name: string;
@@ -97,6 +100,14 @@ export interface ReviewField {
   /** Offsets into the matching ReviewPage.text. Null when match_kind is "none". */
   source_start: number | null;
   source_end: number | null;
+  /**
+   * Rects the server resolved from the parse itself, one per line. Null for
+   * formats that carry no geometry — office, plain text — and that null is what
+   * puts the viewer on its text-search fallback.
+   */
+  source_boxes: NormalizedBox[] | null;
+  /** Span identity behind those rects. Stored now, surfaced in a later phase. */
+  source_span_ids: number[] | null;
   match_kind: MatchKind | null;
   confidence: number | null;
   review_status: ReviewStatus;
@@ -106,6 +117,8 @@ export interface ReviewPage {
   page: number;
   source: "text" | "ocr";
   text: string;
+  /** Set when "page N" is the wrong word for the unit: "Q3 Actuals", "Slide 4". */
+  label?: string;
 }
 
 export interface ReviewPayload {
@@ -127,4 +140,6 @@ export interface ActiveQuote {
   /** Present when the server located the quote in the parsed page text. */
   start: number | null;
   end: number | null;
+  /** Server-resolved rects. Null means the viewer has to search for itself. */
+  boxes: NormalizedBox[] | null;
 }

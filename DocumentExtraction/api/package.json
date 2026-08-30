@@ -1,16 +1,20 @@
 {
   "dependencies": {
+    "@napi-rs/canvas": "0.1.80",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^12.11.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.2.1",
+    "fflate": "^0.8.3",
     "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.12.2",
     "multer": "^2.2.0",
-    "office-text-extractor": "^4.0.0",
     "ollama": "^0.6.3",
-    "pdf-parse": "^2.4.5",
-    "tesseract.js": "^7.0.0"
+    "pdfjs-dist": "5.4.296",
+    "tesseract.js": "^7.0.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -21,6 +25,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/multer": "^2.2.0",
     "@types/node": "^22.15.21",
+    "@types/xml2js": "^0.4.14",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },

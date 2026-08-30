@@ -1,7 +1,10 @@
 import FindInPageIcon from "@mui/icons-material/FindInPage";
 import { Box, Button, Chip, Tooltip, Typography } from "@mui/material";
 import type { ReviewField } from "../../types";
-import { formatConfidence, hasLocatableQuote } from "../../utils/extractedValue";
+import {
+  formatConfidence,
+  hasLocatableQuote,
+} from "../../utils/extractedValue";
 
 const MATCH_COLOR = {
   exact: "success",
@@ -69,41 +72,43 @@ export default function SourceQuoteCell({
 
   return (
     <Box sx={{ minWidth: 0 }}>
-      <Tooltip title={field.llm_quote} arrow>
-        <Button
-          size="small"
-          startIcon={<FindInPageIcon sx={{ fontSize: 14 }} />}
-          onClick={() => onQuoteClick(field)}
-          variant={active ? "contained" : "text"}
-          sx={{
-            textTransform: "none",
-            justifyContent: "flex-start",
-            maxWidth: "100%",
-            py: 0.25,
-            px: 1,
-            fontSize: "0.75rem",
-            borderRadius: 1,
-            ...(active
-              ? {
-                  bgcolor: "secondary.main",
-                  "&:hover": { bgcolor: "secondary.dark" },
-                }
-              : {
-                  color: "secondary.main",
-                  bgcolor: "#EFF6FF",
-                  "&:hover": { bgcolor: "#DBEAFE" },
-                }),
-          }}
+      {/* No tooltip on the locate button: it popped the full quote over the row
+          the moment the pointer crossed it, covering the values underneath on
+          the way to a click. The quote is in the document panel anyway, which is
+          what this button is for. */}
+      <Button
+        size="small"
+        startIcon={<FindInPageIcon sx={{ fontSize: 14 }} />}
+        onClick={() => onQuoteClick(field)}
+        variant={active ? "contained" : "text"}
+        sx={{
+          textTransform: "none",
+          justifyContent: "flex-start",
+          maxWidth: "100%",
+          py: 0.25,
+          px: 1,
+          fontSize: "0.75rem",
+          borderRadius: 1,
+          ...(active
+            ? {
+                bgcolor: "secondary.main",
+                "&:hover": { bgcolor: "secondary.dark" },
+              }
+            : {
+                color: "secondary.main",
+                bgcolor: "#EFF6FF",
+                "&:hover": { bgcolor: "#DBEAFE" },
+              }),
+        }}
+      >
+        <Typography
+          variant="caption"
+          noWrap
+          sx={{ fontWeight: 500, maxWidth: 150 }}
         >
-          <Typography
-            variant="caption"
-            noWrap
-            sx={{ fontWeight: 500, maxWidth: 150 }}
-          >
-            &ldquo;{field.llm_quote}&rdquo;
-          </Typography>
-        </Button>
-      </Tooltip>
+          &ldquo;{field.llm_quote}&rdquo;
+        </Typography>
+      </Button>
 
       <Box
         sx={{

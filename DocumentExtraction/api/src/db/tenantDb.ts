@@ -51,7 +51,8 @@ export function openTenantDB(tenantDBPath: string) {
         CREATE TABLE IF NOT EXISTS parsedDocumentText (
             document_id  INTEGER NOT NULL PRIMARY KEY REFERENCES documents(id) ON DELETE CASCADE,
             text         TEXT NOT NULL,
-            pages_json   TEXT NOT NULL,
+            pages_json   TEXT NOT NULL,   -- [{ page, text, source, label? }] — the review payload
+            spans_json   TEXT NOT NULL DEFAULT '[]',  -- [{ page, width, height, spans }] — extraction only
             page_count   INTEGER NOT NULL,
             char_count   INTEGER NOT NULL, 
             method       TEXT NOT NULL,
@@ -71,6 +72,8 @@ export function openTenantDB(tenantDBPath: string) {
             source_page  INTEGER,
             source_start INTEGER, 
             source_end   INTEGER, 
+            source_span_ids TEXT,   -- JSON number[], null when nothing was located
+            source_boxes    TEXT,   -- JSON NormalizedBox[], null for formats with no geometry
             match_kind   TEXT CHECK(match_kind IN ('exact', 'normalized', 'none')),
             confidence   REAL,
             review_status TEXT NOT NULL DEFAULT 'unreviewed'

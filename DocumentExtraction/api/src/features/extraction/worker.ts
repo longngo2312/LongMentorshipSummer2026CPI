@@ -75,10 +75,32 @@ async function runJob(job: ExtractionJob | undefined) {
       document.mime_type,
     );
 
+    // Narrowed on purpose. pages_json is what the review payload ships to the
+    // browser, so the spans go into their own column — JSON.stringify(parsed.pages)
+    // would put ~1MB of geometry back into the request this split exists to keep
+    // it out of.
+    const pagesJson = JSON.stringify(
+      parsed.pages.map(({ page, text, source, label }) => ({
+        page,
+        text,
+        source,
+        label,
+      })),
+    );
+    const spansJson = JSON.stringify(
+      parsed.pages.map(({ page, width, height, spans }) => ({
+        page,
+        width,
+        height,
+        spans,
+      })),
+    );
+
     db.prepare(DOCUMENT_TEXT_SQL.upsert).run(
       job.document_id,
       parsed.text,
-      JSON.stringify(parsed.pages),
+      pagesJson,
+      spansJson,
       parsed.pageCount,
       parsed.charCount,
       parsed.method,

@@ -2,16 +2,33 @@ import {
   DocumentListItem,
   DocumentRecord,
 } from "../../document/models/document.model.js";
+import type {
+  NormalizedBox,
+  ParsedSpan,
+} from "../../parsing/types.js";
 import type { SchemaColumns } from "../../schema/models/schema.model.js";
 
 export interface DocumentText {
   document_id: number;
   text: string;
-  pages_json: string; // JSON.stringify(ParsedPage[]) — parse before use
+  pages_json: string; // JSON.stringify(ReviewPage[]) — parse before use
+  /**
+   * JSON.stringify(PageSpans[]). Absent on rows read through
+   * getPagesForReview, which deliberately does not select it.
+   */
+  spans_json: string;
   page_count: number;
   char_count: number;
   method: string;
   parsed_at: string;
+}
+
+/** One page's geometry, as stored in parsedDocumentText.spans_json. */
+export interface PageSpans {
+  page: number;
+  width: number;
+  height: number;
+  spans: ParsedSpan[];
 }
 
 export type ReviewStatus = "unreviewed" | "accepted" | "edited" | "rejected";
@@ -30,6 +47,8 @@ export interface ExtractedValue {
   source_page: number | null;
   source_start: number | null;
   source_end: number | null;
+  source_span_ids: string | null; // JSON number[] — raw from SELECT *
+  source_boxes: string | null; // JSON NormalizedBox[] — raw from SELECT *
   match_kind: MatchKind | null;
   confidence: number | null;
   review_status: ReviewStatus;
@@ -74,6 +93,14 @@ export interface ReviewField {
   // quote out directly. Null whenever match_kind is "none".
   source_start: number | null;
   source_end: number | null;
+  /**
+   * Normalized 0..1 rects, one per line, ready to draw. Null for formats with
+   * no geometry — office and plain text — which is what puts the client on its
+   * search fallback rather than leaving it with an empty highlight.
+   */
+  source_boxes: NormalizedBox[] | null;
+  /** Span identity, so geometry can be re-derived without re-running the match. */
+  source_span_ids: number[] | null;
   match_kind: MatchKind | null;
   confidence: number | null;
   review_status: ReviewStatus;
@@ -83,6 +110,8 @@ export interface ReviewPage {
   page: number;
   source: "text" | "ocr";
   text: string;
+  /** Human name for the unit when "page N" is wrong: "Q3 Actuals", "Slide 4". */
+  label?: string;
 }
 
 export interface ReviewPayload {
