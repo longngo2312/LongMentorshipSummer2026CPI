@@ -13,6 +13,8 @@ import {
   recoverStaleJobs,
 } from "./queue/jobQueue.js";
 import { extractDocument } from "./services/extraction.service.js";
+import { runGrounding } from "./services/grounding.service.js";
+import { summarizeDocument } from "./services/summary.service.js";
 import { DOCUMENT_TEXT_SQL } from "./sql/documentText.sql.js";
 
 let ticking = false;
@@ -106,7 +108,27 @@ async function runJob(job: ExtractionJob | undefined) {
       parsed.method,
     );
     //Extraction Starts HERE
-    await extractDocument(db, job.document_id);
+    const outcome = await extractDocument(db, job.document_id);
+
+    // Both of these are caught rather than allowed to fail the job, and that is
+    // load-bearing: failJob requeues, and a requeued job re-runs extractDocument
+    // from the top — so an uncaught throw here would re-pay ~90s of GPU time
+    // three times over for work that already succeeded and is already committed.
+    //
+    // The cost is that a document can reach "extracted" with support NULL
+    // everywhere and nothing on the row saying why. That is exactly why the
+    // column is nullable and why the UI renders NULL as "not verified".
+    try {
+      await runGrounding(db, job.document_id, outcome.claims);
+    } catch (error) {
+      console.error(`[worker] grounding failed for ${job.document_id}:`, error);
+    }
+
+    try {
+      await summarizeDocument(db, job.document_id);
+    } catch (error) {
+      console.error(`[worker] summary failed for ${job.document_id}:`, error);
+    }
 
     db.prepare(DOCUMENT_SQL.updateStatus).run("extracted", job.document_id);
 

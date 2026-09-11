@@ -29,6 +29,44 @@ export function hasLocatableQuote(field: ReviewField): boolean {
 }
 
 /**
+ * Bands, not percentages. A 7B's self-reported float is not calibrated to two
+ * digits — rendering "82%" implies a precision it does not have.
+ */
+export function confidenceBand(
+  confidence: number | null,
+): "high" | "medium" | "low" | null {
+  if (confidence === null) return null;
+  return confidence >= 0.8 ? "high" : confidence >= 0.5 ? "medium" : "low";
+}
+
+export type Flag = "fabricated" | "contradicted" | "unsupported" | "unverified";
+
+/**
+ * The two hallucinations, named separately because they need different reactions:
+ * "fabricated" means the quote is not in the document at all, "contradicted"
+ * means the quote is real and says something other than the answer drawn from it.
+ *
+ * Ordered by severity — the first match wins.
+ */
+export function flagFor(field: ReviewField): Flag | null {
+  // A quote that did not resolve, asserted confidently. Low confidence on an
+  // unresolved quote is the model correctly hedging, which is not a flag.
+  if (field.match_kind === "none" && (field.llm_confidence ?? 0) >= 0.8) {
+    return "fabricated";
+  }
+  if (field.support === "contradicted") return "contradicted";
+  if (field.support === "unsupported") return "unsupported";
+  // Inferred, but the grounding call never ran. NOT the same as passing it.
+  if (field.basis === "inferred" && field.support === null) return "unverified";
+  return null;
+}
+
+/** Fields carrying a flag, for the badge on the Fields tab. */
+export function countFlagged(fields: ReviewField[]): number {
+  return fields.filter((field) => flagFor(field) !== null).length;
+}
+
+/**
  * Fields the reviewer has ruled on — either saved earlier, or pending in this
  * session. Drives the progress bar and gates the save button.
  */

@@ -1,15 +1,27 @@
 export const EXTRACTED_VALUES_SQL = {
+  // 18 placeholders. Count them against the bind list in extraction.service.ts
+  // before changing either: better-sqlite3 throws on arity mismatch inside the
+  // worker's catch, where it surfaces as a generic document failure rather than
+  // as the off-by-one it is.
   upsert: `
         INSERT INTO extracted_values (
             document_id, column_id, llm_value, llm_quote,
+            llm_confidence, llm_reasoning, basis, support,
             value_text, value_number, value_date,
             source_page, source_start, source_end,
             source_span_ids, source_boxes,
             match_kind, confidence
-        ) VALUES(?,?,?,?, ?,?,?, ?,?,?, ?,?, ?,?)
+        ) VALUES(?,?,?,?, ?,?,?,?, ?,?,?, ?,?,?, ?,?, ?,?)
         ON CONFLICT(document_id, column_id) DO UPDATE SET
             llm_value    = excluded.llm_value,
             llm_quote    = excluded.llm_quote,
+            llm_confidence = excluded.llm_confidence,
+            llm_reasoning  = excluded.llm_reasoning,
+            basis        = excluded.basis,
+            -- Always the incoming NULL: grounding runs after this statement, so a
+            -- verdict left from the previous extraction describes an answer that
+            -- no longer exists. Same reasoning as review_status below.
+            support      = excluded.support,
             value_text   = excluded.value_text,
             value_number = excluded.value_number,
             value_date   = excluded.value_date,
@@ -24,6 +36,12 @@ export const EXTRACTED_VALUES_SQL = {
             -- a reviewer left on the previous one no longer applies to it.
             review_status = 'unreviewed',
             reviewed_at   = NULL;
+    `,
+
+  // Written by the grounding check, after the extraction transaction commits.
+  setSupport: `
+        UPDATE extracted_values SET support = ?
+         WHERE document_id = ? AND column_id = ?;
     `,
 
   getByDocument: `
@@ -47,6 +65,15 @@ export const EXTRACTED_VALUES_SQL = {
             sc.enum_options,
             ev.llm_value,
             ev.llm_quote,
+            -- Three orthogonal signals, never blended in the UI:
+            --   confidence     — does the quote exist?        (resolveQuote, deterministic)
+            --   llm_confidence — does it support this answer? (the extracting model)
+            --   support        — same question, asked of a    (grounding check)
+            --                    model that never saw the document
+            ev.llm_confidence,
+            ev.llm_reasoning,
+            ev.basis,
+            ev.support,
             ev.value_text,
             ev.source_page,
             -- Offsets into pages_json[source_page-1].text, which is the exact

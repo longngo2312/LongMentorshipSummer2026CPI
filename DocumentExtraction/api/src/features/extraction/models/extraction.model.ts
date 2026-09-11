@@ -35,12 +35,22 @@ export type ReviewStatus = "unreviewed" | "accepted" | "edited" | "rejected";
 
 export type MatchKind = "exact" | "normalized" | "none";
 
+/** How the model arrived at a value. Routes a field into the grounding check. */
+export type Basis = "stated" | "inferred" | "absent";
+
+/** The grounding check's verdict on whether a quote establishes its answer. */
+export type Support = "entailed" | "partial" | "unsupported" | "contradicted";
+
 export interface ExtractedValue {
   id: number;
   document_id: number;
   column_id: number;
   llm_value: string | null;
   llm_quote: string | null;
+  llm_confidence: number | null;
+  llm_reasoning: string | null;
+  basis: Basis | null;
+  support: Support | null;
   value_text: string | null;
   value_number: number | null;
   value_date: string | null;
@@ -69,13 +79,63 @@ export interface ExtractedDocument {
 export interface SchemaJson {
   schema: Record<string, unknown>;
   keyToColumnId: Map<string, number>;
-  fieldLines: string[];
+  /** Columns that have a description: the model answers it and derives a value. */
+  derivedFields: string[];
+  /** Columns with no description: the model copies the literal value. */
+  verbatimFields: string[];
 }
 
 export interface LlmFieldAnswer {
   value: string | null;
   quote: string | null;
   page: number | null;
+  /** The model's own 0..1, conditioned on its quote. Null when it omitted or garbled it. */
+  confidence: number | null;
+  basis: Basis | null;
+  reasoning: string | null;
+}
+
+/**
+ * One inferred conclusion, ready for the grounding check.
+ *
+ * Deliberately carries no document text — the isolation the check depends on is
+ * enforced by what this type can hold.
+ */
+export interface GroundingClaim {
+  columnId: number;
+  /** The column description — the question the client actually asked. */
+  question: string;
+  /** The conclusion the model reached. */
+  value: string;
+  /** The verbatim evidence it cited. */
+  quote: string;
+}
+
+/** What extraction hands the worker, so grounding does not have to re-query. */
+export interface ExtractionOutcome {
+  claims: GroundingClaim[];
+}
+
+/** Raw DB shape — key_findings/caveats are JSON strings straight from SELECT. */
+export interface DocumentSummaryRow {
+  document_id: number;
+  overview: string;
+  key_findings: string;
+  caveats: string;
+  model: string;
+  input_chars: number;
+  generated_at: string;
+}
+
+/** API shape — arrays parsed. Two types because every JSON-in-TEXT column in this
+ * codebase has produced an "it came back as a string" bug at least once. */
+export interface DocumentSummary {
+  overview: string;
+  key_findings: string[];
+  caveats: string[];
+  model: string;
+  input_chars: number;
+  generated_at: string;
 }
 
 // --- Review types (for the split-panel review API) ---
@@ -87,6 +147,16 @@ export interface ReviewField {
   enum_options: string[] | null;
   llm_value: string | null;
   llm_quote: string | null;
+  /** How strongly the model thinks its own quote supports this answer, 0..1. */
+  llm_confidence: number | null;
+  /** One sentence naming the evidence and the step taken from it. */
+  llm_reasoning: string | null;
+  basis: Basis | null;
+  /**
+   * The grounding check's verdict. Null means it did not run — an unverified
+   * inference, NOT a passing one. The UI must say "not verified".
+   */
+  support: Support | null;
   value_text: string | null;
   source_page: number | null;
   // Index into the matching ReviewPage.text, so the text viewer can slice the
@@ -118,6 +188,8 @@ export interface ReviewPayload {
   document: DocumentListItem;
   pages: ReviewPage[];
   fields: ReviewField[];
+  /** Null when the summary call failed or has not run — a real, renderable state. */
+  summary: DocumentSummary | null;
 }
 
 export interface ReviewEdit {

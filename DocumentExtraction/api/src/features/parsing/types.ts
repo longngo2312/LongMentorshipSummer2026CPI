@@ -13,18 +13,10 @@ export type ParseMethod =
 export type NormalizedBox = [x0: number, y0: number, x1: number, y1: number];
 
 export interface ParsedSpan {
-  /** Unique within the document, not the page — the counter is threaded through the parse. */
   id: number;
-  /** [start, end) into ParsedPage.text. */
   start: number;
   end: number;
-  /** null for formats with no recoverable geometry (office, plain text). */
   bbox: NormalizedBox | null;
-  /**
-   * Format-native address, when one exists — a spreadsheet cell ("B7").
-   * For a spreadsheet this *is* the provenance answer, the way a rect is for a
-   * PDF: without it a quote's origin is only ever "somewhere in Sheet 2".
-   */
   ref?: string;
 }
 

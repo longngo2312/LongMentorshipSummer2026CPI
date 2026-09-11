@@ -4,11 +4,14 @@ import { DOCUMENT_SQL } from "../../document/sqls/document.sql.js";
 import type { ParsedPage } from "../../parsing/types.js";
 import type { SchemaColumns } from "../../schema/models/schema.model.js";
 import type {
+  DocumentSummary,
+  DocumentSummaryRow,
   DocumentText,
   ReviewEdit,
   ReviewField,
   ReviewPayload,
 } from "../models/extraction.model.js";
+import { DOCUMENT_SUMMARY_SQL } from "../sql/documentSummary.sql.js";
 import { DOCUMENT_TEXT_SQL } from "../sql/documentText.sql.js";
 import { EXTRACTED_VALUES_SQL } from "../sql/extractedValues.sql.js";
 import { coerce } from "../utils/coerce.util.js";
@@ -20,6 +23,10 @@ interface ReviewFieldRow {
   enum_options: string | null;
   llm_value: string | null;
   llm_quote: string | null;
+  llm_confidence: number | null;
+  llm_reasoning: string | null;
+  basis: string | null;
+  support: string | null;
   value_text: string | null;
   source_page: number | null;
   source_start: number | null;
@@ -63,6 +70,10 @@ export function getReviewPayload(
     enum_options: row.enum_options ? JSON.parse(row.enum_options) : null,
     llm_value: row.llm_value,
     llm_quote: row.llm_quote,
+    llm_confidence: row.llm_confidence,
+    llm_reasoning: row.llm_reasoning,
+    basis: row.basis as ReviewField["basis"],
+    support: row.support as ReviewField["support"],
     value_text: row.value_text,
     source_page: row.source_page,
     source_start: row.source_start,
@@ -76,6 +87,25 @@ export function getReviewPayload(
     review_status: row.review_status as ReviewField["review_status"],
   }));
 
+  // Rides the existing payload (~1KB) rather than a second endpoint: another
+  // fetch would buy another loading state and nothing else.
+  const summaryRow = db
+    .prepare(DOCUMENT_SUMMARY_SQL.getByDocumentId)
+    .get(documentId) as DocumentSummaryRow | undefined;
+
+  const summary: DocumentSummary | null = summaryRow
+    ? {
+        overview: summaryRow.overview,
+        // TEXT columns holding JSON — parse at the boundary, never hand the
+        // client the raw string.
+        key_findings: JSON.parse(summaryRow.key_findings),
+        caveats: JSON.parse(summaryRow.caveats),
+        model: summaryRow.model,
+        input_chars: summaryRow.input_chars,
+        generated_at: summaryRow.generated_at,
+      }
+    : null;
+
   return {
     document,
     pages: pages.map((p) => ({
@@ -85,6 +115,7 @@ export function getReviewPayload(
       label: p.label,
     })),
     fields,
+    summary,
   };
 }
 

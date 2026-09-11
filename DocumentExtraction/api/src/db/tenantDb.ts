@@ -64,6 +64,16 @@ export function openTenantDB(tenantDBPath: string) {
             id INTEGER   PRIMARY KEY AUTOINCREMENT,
             document_id  INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
             column_id    INTEGER NOT NULL REFERENCES schema_columns(id) ON DELETE CASCADE, 
+            -- All four nullable on purpose: a model that omitted a key has to stay
+            -- distinguishable from one that answered 0 / 'absent'.
+            llm_confidence REAL,    -- model's own 0..1, conditioned on its own quote
+            llm_reasoning  TEXT,    -- one sentence: the inference, in words
+            basis        TEXT CHECK (basis IN ('stated','inferred','absent')),
+            -- The grounding verdict. NULL for stated fields (the quote match is
+            -- their check), for inferred fields whose quote never resolved, and
+            -- whenever the grounding call itself failed — which is why the UI must
+            -- render NULL as "not verified" and never as "fine".
+            support      TEXT CHECK (support IN ('entailed','partial','unsupported','contradicted')),
             llm_value    TEXT,
             llm_quote    TEXT, 
             value_text   TEXT, 
@@ -82,8 +92,22 @@ export function openTenantDB(tenantDBPath: string) {
             UNIQUE(document_id, column_id)   
         );
 
-
         CREATE INDEX IF NOT EXISTS idx_values_document ON extracted_values(document_id);
+
+        -- Document-level, so it cannot live in extracted_values (which is per-column).
+        CREATE TABLE IF NOT EXISTS document_summaries (
+            document_id  INTEGER NOT NULL PRIMARY KEY REFERENCES documents(id) ON DELETE CASCADE,
+            overview     TEXT NOT NULL,
+            -- JSON string[] — same convention as enum_options and source_boxes:
+            -- stringify in, parse at the service boundary, never hand the client
+            -- the raw string.
+            key_findings TEXT NOT NULL DEFAULT '[]',
+            caveats      TEXT NOT NULL DEFAULT '[]',
+            model        TEXT NOT NULL,
+            input_chars  INTEGER NOT NULL,   -- how much text it actually saw
+            generated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
     `, //pages_json` is `JSON.stringify(result.pages)
   );
   return db;

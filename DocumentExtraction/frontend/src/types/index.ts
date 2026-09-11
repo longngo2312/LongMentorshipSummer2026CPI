@@ -81,6 +81,12 @@ export type DataType = "text" | "number" | "date" | "boolean" | "enum";
 
 export type MatchKind = "exact" | "normalized" | "none";
 
+/** How the model arrived at a value. "inferred" is what routes it to grounding. */
+export type Basis = "stated" | "inferred" | "absent";
+
+/** The grounding check's verdict on whether a quote establishes its answer. */
+export type Support = "entailed" | "partial" | "unsupported" | "contradicted";
+
 export type ReviewStatus = "unreviewed" | "accepted" | "edited" | "rejected";
 
 /** Normalized to 0..1 against the page box, origin top-left. Scale independent. */
@@ -94,6 +100,20 @@ export interface ReviewField {
   /** The raw model answer, frozen at extraction time. */
   llm_value: string | null;
   llm_quote: string | null;
+  /**
+   * How strongly the extracting model thinks its own quote supports this answer.
+   * Distinct from `confidence` below, which asks whether the quote exists at all.
+   */
+  llm_confidence: number | null;
+  /** One sentence naming the evidence and the step taken from it. */
+  llm_reasoning: string | null;
+  basis: Basis | null;
+  /**
+   * A second model's verdict, reached seeing only the question, the answer and
+   * the quote — never the document. Null means the check did not run: an
+   * unverified inference, NOT a passing one.
+   */
+  support: Support | null;
   /** The working value — what the reviewer sees and edits. */
   value_text: string | null;
   source_page: number | null;
@@ -109,8 +129,19 @@ export interface ReviewField {
   /** Span identity behind those rects. Stored now, surfaced in a later phase. */
   source_span_ids: number[] | null;
   match_kind: MatchKind | null;
+  /** Does the quote exist in the parsed page text? Deterministic, server-side. */
   confidence: number | null;
   review_status: ReviewStatus;
+}
+
+export interface DocumentSummary {
+  overview: string;
+  key_findings: string[];
+  caveats: string[];
+  model: string;
+  /** How much document text the summary call actually saw. */
+  input_chars: number;
+  generated_at: string;
 }
 
 export interface ReviewPage {
@@ -125,6 +156,8 @@ export interface ReviewPayload {
   document: DocumentListItem;
   pages: ReviewPage[];
   fields: ReviewField[];
+  /** Null when the summary call failed or has not run — a real, rendered state. */
+  summary: DocumentSummary | null;
 }
 
 export interface ReviewEdit {
