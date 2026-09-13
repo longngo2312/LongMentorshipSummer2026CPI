@@ -1,11 +1,19 @@
-import { Alert, Box } from "@mui/material";
-import type { DocumentListItem, ReviewField } from "../../types";
+import { Alert, Badge, Box, Tab, Tabs } from "@mui/material";
+import { useState } from "react";
+import type {
+  DocumentListItem,
+  DocumentSummary,
+  ReviewField,
+} from "../../types";
+import { countFlagged } from "../../utils/extractedValue";
 import ExtractedValuesTable from "./ExtractedValuesTable";
 import ExtractionSummary from "./ExtractionSummary";
+import SummaryTab from "./SummaryTab";
 
 interface ReviewPanelProps {
   document: DocumentListItem;
   fields: ReviewField[];
+  summary: DocumentSummary | null;
   edits: Map<number, string | null>;
   activeColumnId: number | null;
   saving: boolean;
@@ -15,10 +23,11 @@ interface ReviewPanelProps {
   onSave: () => void;
 }
 
-/** The right half of the split: progress, save, and the field table. */
+/** The right half of the split: progress, save, and the field table or summary. */
 export default function ReviewPanel({
   document,
   fields,
+  summary,
   edits,
   activeColumnId,
   saving,
@@ -27,6 +36,9 @@ export default function ReviewPanel({
   onSetValue,
   onSave,
 }: ReviewPanelProps) {
+  const [tab, setTab] = useState<"fields" | "summary">("fields");
+  const flagged = countFlagged(fields);
+
   return (
     <Box
       sx={{
@@ -58,6 +70,37 @@ export default function ReviewPanel({
           saving={saving}
           onSave={onSave}
         />
+
+        {/* Inside the sticky header, below the progress ring, so Save and the
+            progress stay visible on both tabs. */}
+        <Tabs
+          value={tab}
+          onChange={(_, next: "fields" | "summary") => setTab(next)}
+          sx={{
+            minHeight: 36,
+            "& .MuiTab-root": {
+              minHeight: 36,
+              py: 0,
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              textTransform: "none",
+            },
+          }}
+        >
+          <Tab
+            value="fields"
+            label={
+              <Badge
+                badgeContent={flagged}
+                color="error"
+                sx={{ "& .MuiBadge-badge": { right: -12, top: 2 } }}
+              >
+                Fields
+              </Badge>
+            }
+          />
+          <Tab value="summary" label="Summary" />
+        </Tabs>
       </Box>
 
       {/* Scrollable content area */}
@@ -75,13 +118,17 @@ export default function ReviewPanel({
           </Alert>
         )}
 
-        <ExtractedValuesTable
-          fields={fields}
-          edits={edits}
-          activeColumnId={activeColumnId}
-          onQuoteClick={onQuoteClick}
-          onSetValue={onSetValue}
-        />
+        {tab === "fields" ? (
+          <ExtractedValuesTable
+            fields={fields}
+            edits={edits}
+            activeColumnId={activeColumnId}
+            onQuoteClick={onQuoteClick}
+            onSetValue={onSetValue}
+          />
+        ) : (
+          <SummaryTab summary={summary} status={document.status} />
+        )}
       </Box>
     </Box>
   );

@@ -151,6 +151,7 @@ export default function ExtractedDocumentPage() {
           <ReviewPanel
             document={payload.document}
             fields={payload.fields}
+            summary={payload.summary}
             edits={edits}
             activeColumnId={activeQuote?.columnId ?? null}
             saving={saving}

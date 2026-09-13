@@ -1,8 +1,10 @@
 import { Box, Button, Chip, Paper, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import type { ReviewField } from "../../types";
-import { projectStatus } from "../../utils/extractedValue";
+import type { Flag } from "../../utils/extractedValue";
+import { flagFor, projectStatus } from "../../utils/extractedValue";
 import ExtractedValueCell from "./ExtractedValueCell";
+import InferenceNote from "./InferenceNote";
 import ReviewActions from "./ReviewActions";
 import ReviewStatusChip from "./ReviewStatusChip";
 import SourceQuoteCell from "./SourceQuoteCell";
@@ -13,6 +15,27 @@ const STATUS_BORDER_COLOR: Record<string, string> = {
   accepted: "#059669",
   edited: "#2563EB",
   rejected: "#DC2626",
+};
+
+/**
+ * Flags override the status accent while a field is still unreviewed.
+ *
+ * Without this the whole grounding check is invisible until someone opens the
+ * row — and a contradicted inference looks exactly like every other unreviewed
+ * field, which is the one outcome Stage 5 exists to prevent.
+ */
+const FLAG_BORDER_COLOR: Record<Flag, string> = {
+  fabricated: "#DC2626",
+  contradicted: "#DC2626",
+  unsupported: "#D97706",
+  unverified: "#CBD5E1",
+};
+
+const FLAG_LABEL: Record<Flag, string> = {
+  fabricated: "quote not found",
+  contradicted: "contradicted",
+  unsupported: "unsupported",
+  unverified: "unverified",
 };
 
 interface ExtractedValueRowItemProps {
@@ -35,7 +58,14 @@ export default function ExtractedValueRowItem({
 
   const status = projectStatus(field, pendingValue);
   const pending = pendingValue !== undefined;
-  const borderColor = STATUS_BORDER_COLOR[status] ?? "#E2E8F0";
+  const flag = flagFor(field);
+
+  // Once a reviewer has ruled on the field, their verdict is the more useful
+  // accent — the flag did its job getting them here.
+  const showFlag = flag !== null && status === "unreviewed";
+  const borderColor = showFlag
+    ? FLAG_BORDER_COLOR[flag]
+    : (STATUS_BORDER_COLOR[status] ?? "#E2E8F0");
 
   function startEdit() {
     const current =
@@ -99,6 +129,28 @@ export default function ExtractedValueRowItem({
             fontWeight: 500,
           }}
         />
+
+        {showFlag && (
+          <Chip
+            label={FLAG_LABEL[flag]}
+            size="small"
+            sx={{
+              height: 18,
+              fontSize: "0.6rem",
+              fontWeight: 700,
+              color: "#fff",
+              bgcolor: FLAG_BORDER_COLOR[flag],
+              // "unverified" is an absence of information, not a problem with the
+              // field — it should not shout like a contradiction does.
+              ...(flag === "unverified" && {
+                color: "text.secondary",
+                bgcolor: "transparent",
+                border: "1px solid #CBD5E1",
+              }),
+              "& .MuiChip-label": { px: 0.75 },
+            }}
+          />
+        )}
 
         <Box sx={{ flexGrow: 1 }} />
 
@@ -177,8 +229,11 @@ export default function ExtractedValueRowItem({
             // No hover tooltip on the value: it covered the rows underneath on
             // the way to a click. The Box stays — it was the tooltip's anchor,
             // but its inline-block is also what sizes the cell.
-            <Box sx={{ display: "inline-block" }}>
-              <ExtractedValueCell field={field} pendingValue={pendingValue} />
+            <Box>
+              <Box sx={{ display: "inline-block" }}>
+                <ExtractedValueCell field={field} pendingValue={pendingValue} />
+              </Box>
+              <InferenceNote field={field} />
             </Box>
           )}
         </Box>
