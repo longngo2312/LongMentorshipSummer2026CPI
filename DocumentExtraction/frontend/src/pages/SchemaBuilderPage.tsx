@@ -1,7 +1,7 @@
 import { Box, Button, Container, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import RenderSchemas from "../components/RenderSchemas";
-import SchemaBuilder from "../components/SchemaBuilder";
+import RenderSchemas from "../components/schema/RenderSchemas";
+import SchemaBuilder from "../components/schema/SchemaBuilder";
 import { useSchemaStore } from "../stores/schemaStore";
 import type { DocumentSchema } from "../types";
 

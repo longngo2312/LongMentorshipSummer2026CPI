@@ -2,15 +2,20 @@ import {
   Alert,
   Box,
   Button,
-  Container,
   Link as MuiLink,
+  Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { register } from "../api/auth";
+import AuthLayout from "../components/auth/AuthLayout";
+import PasswordField from "../components/auth/PasswordField";
 import { useAuthStore } from "../stores/authStore";
+
+const MIN_PASSWORD_LENGTH = 8;
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -20,6 +25,10 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Mirrors isValidPassword on the API so the user isn't told after a round trip.
+  const passwordTooShort =
+    password.length > 0 && password.length < MIN_PASSWORD_LENGTH;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,31 +46,28 @@ export default function RegisterPage() {
   }
 
   return (
-    <Container maxWidth="xs">
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          py: 4,
-        }}
-      >
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-        >
-          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-            Create Account
-          </Typography>
-
+    <AuthLayout
+      title="Create your account"
+      subtitle="Define schemas once, then extract structured data from every upload."
+      footer={
+        <Typography variant="body2" color="text.secondary">
+          Already have an account?{" "}
+          <MuiLink component={RouterLink} to="/login" sx={{ fontWeight: 600 }}>
+            Log in
+          </MuiLink>
+        </Typography>
+      }
+    >
+      <Box component="form" onSubmit={handleSubmit}>
+        <Stack spacing={2.5}>
           {error && <Alert severity="error">{error}</Alert>}
 
           <TextField
             label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
+            disabled={loading}
             fullWidth
             required
           />
@@ -71,31 +77,36 @@ export default function RegisterPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            disabled={loading}
             fullWidth
             required
           />
 
-          <TextField
-            label="Password"
-            type="password"
+          <PasswordField
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            fullWidth
-            required
+            onChange={setPassword}
+            autoComplete="new-password"
+            disabled={loading}
+            helperText={
+              passwordTooShort
+                ? `At least ${MIN_PASSWORD_LENGTH} characters`
+                : " "
+            }
           />
 
-          <Button type="submit" variant="contained" fullWidth disabled={loading}>
-            {loading ? "Creating account..." : "Create Account"}
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            fullWidth
+            disabled={loading || passwordTooShort}
+            sx={{ py: 1.25, fontWeight: 600 }}
+          >
+            {loading ? "Creating account…" : "Create account"}
           </Button>
-
-          <Typography variant="body2" sx={{ textAlign: "center" }}>
-            Already have an account?{" "}
-            <MuiLink component={RouterLink} to="/login">
-              Log in
-            </MuiLink>
-          </Typography>
-        </Box>
+        </Stack>
       </Box>
-    </Container>
+    </AuthLayout>
   );
 }
