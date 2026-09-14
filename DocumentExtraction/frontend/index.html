@@ -5,6 +5,45 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document Extraction</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    />
+
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#FAF9F5"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#1A1917"
+    />
+
+    <!-- Paints the color scheme before first render so a dark-mode reload does
+         not flash white. Key and attribute must match MUI's defaults
+         (`mui-mode`, `data-mui-color-scheme`) — a mismatch fails silently. -->
+    <script>
+      (function () {
+        try {
+          var mode = localStorage.getItem("mui-mode") || "system";
+          var dark =
+            mode === "dark" ||
+            (mode === "system" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.setAttribute(
+            "data-mui-color-scheme",
+            dark ? "dark" : "light"
+          );
+        } catch (e) {
+          /* private mode / blocked storage — fall through to light */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

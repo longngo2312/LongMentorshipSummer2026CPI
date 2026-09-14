@@ -1,6 +1,6 @@
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import { Box, Paper, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
+import Brand from "../layout/Brand";
 
 interface AuthLayoutProps {
   title: string;
@@ -26,26 +26,18 @@ export default function AuthLayout({
         px: 2,
         py: 6,
         // Tinted wash so the white card reads as a distinct surface.
-        background: (theme) =>
-          `radial-gradient(circle at 50% 0%, ${theme.palette.primary.light}22, transparent 60%), ${theme.palette.grey[50]}`,
+        // `theme.vars` is only present once cssVariables is on; fall back so
+        // this stays valid either way.
+        background: (theme) => {
+          const palette = theme.vars?.palette ?? theme.palette;
+          return `radial-gradient(circle at 50% 0%, color-mix(in srgb, ${palette.primary.light} 13%, transparent), transparent 60%), ${palette.background.default}`;
+        },
       }}
     >
       <Box sx={{ width: "100%", maxWidth: 420 }}>
         <Stack spacing={1} sx={{ alignItems: "center", mb: 3 }}>
-          <Box
-            sx={{
-              width: 48,
-              height: 48,
-              borderRadius: 2,
-              display: "grid",
-              placeItems: "center",
-              bgcolor: "primary.main",
-              color: "primary.contrastText",
-            }}
-          >
-            <DescriptionOutlinedIcon />
-          </Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Brand size={48} showWordmark={false} />
+          <Typography variant="h5">
             {title}
           </Typography>
           <Typography
