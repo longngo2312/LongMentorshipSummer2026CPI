@@ -187,7 +187,7 @@ export default function ExtractionSummary({
         variant="determinate"
         value={percent}
         sx={{
-          bgcolor: "#E2E8F0",
+          bgcolor: "divider",
           "& .MuiLinearProgress-bar": {
             bgcolor: allReviewed ? "success.main" : "secondary.main",
             transition: "transform 0.4s ease, background-color 0.3s ease",

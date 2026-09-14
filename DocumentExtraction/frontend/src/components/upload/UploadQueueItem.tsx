@@ -57,6 +57,7 @@ export default function UploadQueueItem({
           <Tooltip title="Retry">
             <IconButton
               size="small"
+              aria-label={`Retry upload of ${item.file.name}`}
               onClick={() => onRetry(item)}
               sx={{ flexShrink: 0 }}
             >
@@ -71,6 +72,7 @@ export default function UploadQueueItem({
             <IconButton
               size="small"
               disabled={busy}
+              aria-label={`Remove ${item.file.name} from queue`}
               onClick={() => onRemove(item.id)}
               sx={{ flexShrink: 0 }}
             >

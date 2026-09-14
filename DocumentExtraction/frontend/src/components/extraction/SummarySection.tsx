@@ -11,23 +11,17 @@ interface SummarySectionProps {
 export default function SummarySection({
   title,
   items,
-  accent = "#94A3B8",
+  accent = "text.disabled",
 }: SummarySectionProps) {
   if (items.length === 0) return null;
 
   return (
     <Box>
       <Typography
-        variant="caption"
-        sx={{
-          color: "text.secondary",
-          fontWeight: 600,
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-          fontSize: "0.6rem",
-          mb: 0.75,
-          display: "block",
-        }}
+        variant="overline"
+        component="div"
+        color="text.secondary"
+        sx={{ mb: 0.75 }}
       >
         {title}
       </Typography>

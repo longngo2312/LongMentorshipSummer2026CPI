@@ -16,7 +16,7 @@ declare module "@mui/material/styles" {
     surface: {
       /** Recessed ground: table heads, empty states, the sidebar. */
       sunken: string;
-      /** The document pane. Deliberately light in both schemes. */
+      /** The "desk" behind rendered document pages. */
       viewer: string;
       /** Selected / active-quote row wash. */
       activeRow: string;
@@ -98,11 +98,11 @@ const theme = createTheme({
           // Note the inversion: in light, `sunken` is lighter than the canvas;
           // here it is darker. "Recessed" is the constant, not the lightness.
           sunken: "#141312",
-          // Unchanged from light on purpose. HighlightOverlay paints with
-          // `mixBlendMode: multiply`, which is invisible over a dark ground —
-          // and scanned pages are white paper regardless. The viewer is a
-          // deliberate light island.
-          viewer: "#F1F0EC",
+          // Safe to go dark: HighlightOverlay's `mixBlendMode: multiply`
+          // composites against the rendered page (pdf.js paints a white canvas,
+          // images bring their own pixels), not against this ground. A dark
+          // desk is what every PDF reader does, and white pages pop against it.
+          viewer: "#0F0E0D",
           activeRow: "#1E2A3A",
           pendingRow: "#2A2418",
         },

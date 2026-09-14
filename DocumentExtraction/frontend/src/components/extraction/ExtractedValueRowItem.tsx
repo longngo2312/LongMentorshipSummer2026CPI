@@ -1,20 +1,18 @@
-import { Box, Button, Chip, Paper, TextField, Typography } from "@mui/material";
+import { Box, Chip, Paper, Typography } from "@mui/material";
 import { useState } from "react";
 import type { ReviewField } from "../../types";
 import type { Flag } from "../../utils/extractedValue";
 import { flagFor, projectStatus } from "../../utils/extractedValue";
-import ExtractedValueCell from "./ExtractedValueCell";
-import InferenceNote from "./InferenceNote";
+import ExtractedValueRowBody from "./ExtractedValueRowBody";
 import ReviewActions from "./ReviewActions";
 import ReviewStatusChip from "./ReviewStatusChip";
-import SourceQuoteCell from "./SourceQuoteCell";
 
-/** Left-border accent color per review status. */
-const STATUS_BORDER_COLOR: Record<string, string> = {
-  unreviewed: "#E2E8F0",
-  accepted: "#059669",
-  edited: "#2563EB",
-  rejected: "#DC2626",
+/** Left-border accent per review status, as palette paths. */
+const STATUS_BORDER: Record<string, string> = {
+  unreviewed: "divider",
+  accepted: "success.main",
+  edited: "secondary.main",
+  rejected: "error.main",
 };
 
 /**
@@ -24,11 +22,11 @@ const STATUS_BORDER_COLOR: Record<string, string> = {
  * row — and a contradicted inference looks exactly like every other unreviewed
  * field, which is the one outcome Stage 5 exists to prevent.
  */
-const FLAG_BORDER_COLOR: Record<Flag, string> = {
-  fabricated: "#DC2626",
-  contradicted: "#DC2626",
-  unsupported: "#D97706",
-  unverified: "#CBD5E1",
+const FLAG_BORDER: Record<Flag, string> = {
+  fabricated: "error.main",
+  contradicted: "error.main",
+  unsupported: "warning.main",
+  unverified: "divider",
 };
 
 const FLAG_LABEL: Record<Flag, string> = {
@@ -64,12 +62,11 @@ export default function ExtractedValueRowItem({
   // accent — the flag did its job getting them here.
   const showFlag = flag !== null && status === "unreviewed";
   const borderColor = showFlag
-    ? FLAG_BORDER_COLOR[flag]
-    : (STATUS_BORDER_COLOR[status] ?? "#E2E8F0");
+    ? FLAG_BORDER[flag]
+    : (STATUS_BORDER[status] ?? "divider");
 
   function startEdit() {
-    const current =
-      pendingValue === undefined ? field.value_text : pendingValue;
+    const current = pendingValue === undefined ? field.value_text : pendingValue;
     setDraft(current ?? "");
     setEditing(true);
   }
@@ -83,14 +80,18 @@ export default function ExtractedValueRowItem({
     <Paper
       variant="outlined"
       sx={{
-        borderLeft: `3px solid ${borderColor}`,
+        borderLeft: 3,
+        borderLeftStyle: "solid",
+        borderLeftColor: borderColor,
         borderRadius: 1.5,
         overflow: "hidden",
         transition: "all 150ms ease",
-        bgcolor: active ? "#EFF6FF" : pending ? "#FFFBEB" : "background.paper",
-        "&:hover": {
-          boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-        },
+        bgcolor: active
+          ? "surface.activeRow"
+          : pending
+            ? "surface.pendingRow"
+            : "background.paper",
+        "&:hover": { boxShadow: 1 },
       }}
     >
       {/* Header row: field name + type + status + actions */}
@@ -98,6 +99,7 @@ export default function ExtractedValueRowItem({
         sx={{
           display: "flex",
           alignItems: "center",
+          flexWrap: "wrap",
           gap: 1,
           px: 2,
           pt: 1.5,
@@ -106,12 +108,7 @@ export default function ExtractedValueRowItem({
       >
         <Typography
           variant="body2"
-          sx={{
-            fontWeight: 600,
-            color: "text.primary",
-            lineHeight: 1.3,
-            minWidth: 0,
-          }}
+          sx={{ fontWeight: 600, color: "text.primary", lineHeight: 1.3, minWidth: 0 }}
           noWrap
         >
           {field.name}
@@ -124,7 +121,7 @@ export default function ExtractedValueRowItem({
           sx={{
             height: 18,
             fontSize: "0.6rem",
-            borderColor: "#CBD5E1",
+            borderColor: "divider",
             color: "text.secondary",
             fontWeight: 500,
           }}
@@ -138,14 +135,15 @@ export default function ExtractedValueRowItem({
               height: 18,
               fontSize: "0.6rem",
               fontWeight: 700,
-              color: "#fff",
-              bgcolor: FLAG_BORDER_COLOR[flag],
+              color: "common.white",
+              bgcolor: FLAG_BORDER[flag],
               // "unverified" is an absence of information, not a problem with the
               // field — it should not shout like a contradiction does.
               ...(flag === "unverified" && {
                 color: "text.secondary",
                 bgcolor: "transparent",
-                border: "1px solid #CBD5E1",
+                border: 1,
+                borderColor: "divider",
               }),
               "& .MuiChip-label": { px: 0.75 },
             }}
@@ -158,110 +156,24 @@ export default function ExtractedValueRowItem({
 
         <ReviewActions
           status={status}
+          fieldName={field.name}
           onAccept={() => onSetValue(field.column_id, field.llm_value)}
           onEdit={startEdit}
           onReject={() => onSetValue(field.column_id, null)}
         />
       </Box>
 
-      {/* Body: value + source quote side by side */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: 3,
-          px: 2,
-          pb: 1.5,
-          alignItems: "flex-start",
-        }}
-      >
-        {/* Value section — takes most space */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography
-            variant="caption"
-            sx={{
-              color: "text.secondary",
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              fontSize: "0.6rem",
-              mb: 0.5,
-              display: "block",
-            }}
-          >
-            Value
-          </Typography>
-
-          {editing ? (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-              <TextField
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                size="small"
-                autoFocus
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    fontSize: "0.8125rem",
-                    borderRadius: 1.5,
-                  },
-                }}
-              />
-              <Box sx={{ display: "flex", gap: 0.75 }}>
-                <Button
-                  size="small"
-                  variant="contained"
-                  onClick={saveEdit}
-                  sx={{ fontSize: "0.7rem", py: 0.25, px: 1.5 }}
-                >
-                  Apply
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => setEditing(false)}
-                  sx={{ fontSize: "0.7rem", py: 0.25, px: 1.5 }}
-                >
-                  Cancel
-                </Button>
-              </Box>
-            </Box>
-          ) : (
-            // No hover tooltip on the value: it covered the rows underneath on
-            // the way to a click. The Box stays — it was the tooltip's anchor,
-            // but its inline-block is also what sizes the cell.
-            <Box>
-              <Box sx={{ display: "inline-block" }}>
-                <ExtractedValueCell field={field} pendingValue={pendingValue} />
-              </Box>
-              <InferenceNote field={field} />
-            </Box>
-          )}
-        </Box>
-
-        {/* Source quote section */}
-        <Box sx={{ flexShrink: 0, minWidth: 140, maxWidth: 260 }}>
-          <Typography
-            variant="caption"
-            sx={{
-              color: "text.secondary",
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              fontSize: "0.6rem",
-              mb: 0.5,
-              display: "block",
-            }}
-          >
-            Source
-          </Typography>
-
-          <SourceQuoteCell
-            field={field}
-            active={active}
-            onQuoteClick={onQuoteClick}
-          />
-        </Box>
-      </Box>
+      <ExtractedValueRowBody
+        field={field}
+        pendingValue={pendingValue}
+        active={active}
+        editing={editing}
+        draft={draft}
+        onDraftChange={setDraft}
+        onSaveEdit={saveEdit}
+        onCancelEdit={() => setEditing(false)}
+        onQuoteClick={onQuoteClick}
+      />
     </Paper>
   );
 }

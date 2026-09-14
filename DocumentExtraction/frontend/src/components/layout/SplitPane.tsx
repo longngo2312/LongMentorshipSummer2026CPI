@@ -68,7 +68,7 @@ export default function SplitPane({
           width: "50%",
           minWidth: 0,
           overflow: "hidden",
-          bgcolor: "#F1F5F9",
+          bgcolor: "surface.viewer",
         }}
       >
         {left}

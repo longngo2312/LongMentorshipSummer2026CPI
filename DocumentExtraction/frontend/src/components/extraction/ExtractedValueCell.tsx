@@ -48,7 +48,7 @@ export default function ExtractedValueCell({
         label={value}
         size="small"
         variant="outlined"
-        sx={{ fontWeight: 500, borderColor: "#CBD5E1" }}
+        sx={{ fontWeight: 500, borderColor: "divider" }}
       />
     );
   }

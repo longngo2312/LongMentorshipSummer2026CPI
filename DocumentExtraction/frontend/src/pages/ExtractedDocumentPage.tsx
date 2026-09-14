@@ -1,6 +1,6 @@
 import { Alert, Box, CircularProgress, Paper } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { getReview, saveReview } from "../api/documents";
 import ReviewPanel from "../components/extraction/ReviewPanel";
 import type { SplitPaneTab } from "../components/layout/SplitPane";
@@ -11,6 +11,11 @@ import type { ActiveQuote, ReviewField, ReviewPayload } from "../types";
 export default function ExtractedDocumentPage() {
   const { id } = useParams<{ id: string }>();
   const documentId = Number(id);
+  const location = useLocation();
+  // A chat citation navigates here with the quote in router state; picking it up
+  // as the initial value means the highlight is live on first paint.
+  const incomingQuote =
+    (location.state as { quote?: ActiveQuote } | null)?.quote ?? null;
 
   const [payload, setPayload] = useState<ReviewPayload | null>(null);
   // The id the current payload belongs to, so `loading` can be derived instead
@@ -25,8 +30,10 @@ export default function ExtractedDocumentPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const [activeQuote, setActiveQuote] = useState<ActiveQuote | null>(null);
-  const [mobileTab, setMobileTab] = useState<SplitPaneTab>("right");
+  const [activeQuote, setActiveQuote] = useState<ActiveQuote | null>(incomingQuote);
+  const [mobileTab, setMobileTab] = useState<SplitPaneTab>(
+    incomingQuote ? "left" : "right",
+  );
 
   const load = useCallback(() => {
     // Every setState sits inside a .then so none of them run synchronously
@@ -129,9 +136,10 @@ export default function ExtractedDocumentPage() {
         minHeight: 0,
         overflow: "hidden",
         borderRadius: 2,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+        boxShadow: 1,
         border: "1px solid",
         borderColor: "divider",
+        m: { xs: 1.5, sm: 2 },
       }}
     >
       <SplitPane

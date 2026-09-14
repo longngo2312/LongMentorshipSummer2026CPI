@@ -34,7 +34,7 @@ export default function ViewerToolbar({
         borderBottom: "1px solid",
         borderColor: "divider",
         flexShrink: 0,
-        bgcolor: "#F8FAFC",
+        bgcolor: "surface.sunken",
       }}
     >
       <InsertDriveFileOutlinedIcon
@@ -65,7 +65,7 @@ export default function ViewerToolbar({
             height: 22,
             fontSize: "0.7rem",
             fontWeight: 500,
-            borderColor: "#CBD5E1",
+            borderColor: "divider",
             mr: 0.5,
           }}
         />
@@ -77,7 +77,7 @@ export default function ViewerToolbar({
           sx={{
             display: "inline-flex",
             gap: "2px",
-            bgcolor: "#E2E8F0",
+            bgcolor: "action.hover",
             borderRadius: 1,
             p: "2px",
           }}
@@ -86,12 +86,13 @@ export default function ViewerToolbar({
             <Tooltip title="Zoom out" arrow>
               <IconButton
                 size="small"
+                aria-label="Zoom out"
                 onClick={onZoomOut}
                 sx={{
                   borderRadius: 0.75,
                   width: 28,
                   height: 28,
-                  "&:hover": { bgcolor: "#CBD5E1" },
+                  "&:hover": { bgcolor: "action.selected" },
                 }}
               >
                 <ZoomOutIcon sx={{ fontSize: 16 }} />
@@ -102,12 +103,13 @@ export default function ViewerToolbar({
             <Tooltip title="Fit width" arrow>
               <IconButton
                 size="small"
+                aria-label="Fit to width"
                 onClick={onZoomReset}
                 sx={{
                   borderRadius: 0.75,
                   width: 28,
                   height: 28,
-                  "&:hover": { bgcolor: "#CBD5E1" },
+                  "&:hover": { bgcolor: "action.selected" },
                 }}
               >
                 <ZoomOutMapIcon sx={{ fontSize: 16 }} />
@@ -118,12 +120,13 @@ export default function ViewerToolbar({
             <Tooltip title="Zoom in" arrow>
               <IconButton
                 size="small"
+                aria-label="Zoom in"
                 onClick={onZoomIn}
                 sx={{
                   borderRadius: 0.75,
                   width: 28,
                   height: 28,
-                  "&:hover": { bgcolor: "#CBD5E1" },
+                  "&:hover": { bgcolor: "action.selected" },
                 }}
               >
                 <ZoomInIcon sx={{ fontSize: 16 }} />
@@ -140,6 +143,7 @@ export default function ViewerToolbar({
           <IconButton
             size="small"
             component="a"
+            aria-label={`Download ${filename}`}
             href={fileUrl ?? undefined}
             download={filename}
             disabled={!fileUrl}
@@ -147,7 +151,7 @@ export default function ViewerToolbar({
               borderRadius: 1,
               width: 30,
               height: 30,
-              "&:hover": { bgcolor: "#E2E8F0" },
+              "&:hover": { bgcolor: "action.hover" },
             }}
           >
             <DownloadIcon sx={{ fontSize: 16 }} />

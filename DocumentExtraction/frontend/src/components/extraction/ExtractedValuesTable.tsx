@@ -26,7 +26,7 @@ export default function ExtractedValuesTable({
           textAlign: "center",
           borderRadius: 2,
           borderStyle: "dashed",
-          bgcolor: "#FAFBFC",
+          bgcolor: "surface.sunken",
         }}
       >
         <Typography color="text.secondary" sx={{ fontWeight: 500 }}>

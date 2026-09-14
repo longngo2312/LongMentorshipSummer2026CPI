@@ -50,16 +50,16 @@ export default function RenderDocuments({
         <Table size="small" sx={{ minWidth: 560 }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Schema</TableCell>
-              <TableCell sx={{ fontWeight: 700, ...HIDE_ON_MOBILE }}>
+              <TableCell scope="col" sx={{ fontWeight: 700 }}>Name</TableCell>
+              <TableCell scope="col" sx={{ fontWeight: 700 }}>Schema</TableCell>
+              <TableCell scope="col" sx={{ fontWeight: 700, ...HIDE_ON_MOBILE }}>
                 Size
               </TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 700, ...HIDE_ON_MOBILE }}>
+              <TableCell scope="col" sx={{ fontWeight: 700 }}>Status</TableCell>
+              <TableCell scope="col" sx={{ fontWeight: 700, ...HIDE_ON_MOBILE }}>
                 Uploaded
               </TableCell>
-              <TableCell sx={{ fontWeight: 700 }} align="right">
+              <TableCell scope="col" sx={{ fontWeight: 700 }} align="right">
                 {/* actions */}
               </TableCell>
             </TableRow>
@@ -104,6 +104,7 @@ export default function RenderDocuments({
                     <IconButton
                       size="small"
                       color="error"
+                      aria-label={`Delete ${document.filename}`}
                       onClick={() => onDelete(document)}
                     >
                       <DeleteIcon fontSize="small" />

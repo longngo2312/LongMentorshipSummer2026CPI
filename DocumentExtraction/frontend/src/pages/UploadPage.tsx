@@ -1,7 +1,8 @@
-import { Box, Button, Container, Stack, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiError } from "../api/client";
+import PageShell from "../components/layout/PageShell";
 import FileDropZone from "../components/upload/FileDropZone";
 import SchemaSelect from "../components/schema/SchemaSelect";
 import UploadQueue from "../components/upload/UploadQueue";
@@ -89,11 +90,10 @@ export default function UploadPage() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" sx={{ fontWeight: "bold", mb: 3 }}>
-        Upload
-      </Typography>
-
+    <PageShell
+      title="Upload"
+      subtitle="Pick a schema, then add the documents to extract."
+    >
       <Stack spacing={3}>
         <SchemaSelect
           disable={uploading}
@@ -139,12 +139,16 @@ export default function UploadPage() {
         </Box>
       </Stack>
 
-      <UploadQueue
-        items={items}
-        onRetry={handleRetry}
-        onRemove={handleRemove}
-        onClearFinished={handleClearFinished}
-      />
-    </Container>
+      {/* Status changes here are the only feedback that an upload progressed,
+          so they need to reach a screen reader too. */}
+      <Box aria-live="polite" aria-atomic="false">
+        <UploadQueue
+          items={items}
+          onRetry={handleRetry}
+          onRemove={handleRemove}
+          onClearFinished={handleClearFinished}
+        />
+      </Box>
+    </PageShell>
   );
 }

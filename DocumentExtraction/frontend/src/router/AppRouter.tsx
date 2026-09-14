@@ -15,6 +15,7 @@ import QueryPage from "../pages/QueryPage";
 import RegisterPage from "../pages/RegisterPage";
 import SchemaBuilderPage from "../pages/SchemaBuilderPage";
 import SchemaDetailPage from "../pages/SchemaDetailPage";
+import SchemaEditorPage from "../pages/SchemaEditorPage";
 import UploadPage from "../pages/UploadPage";
 import { useAuthStore } from "../stores/authStore";
 
@@ -31,7 +32,13 @@ function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/schemas" element={<SchemaBuilderPage />} />
+            {/* Static segment first so "new" can't be read as an :id. */}
+            <Route path="/schemas/new" element={<SchemaEditorPage mode="create" />} />
             <Route path="/schemas/:id" element={<SchemaDetailPage />} />
+            <Route
+              path="/schemas/:id/edit"
+              element={<SchemaEditorPage mode="edit" />}
+            />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/documents" element={<DocumentGridPage />} />
             <Route path="/documents/:id" element={<ExtractedDocumentPage />} />

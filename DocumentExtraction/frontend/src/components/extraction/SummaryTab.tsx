@@ -17,7 +17,7 @@ function EmptyState({ title, detail }: { title: string; detail: string }) {
         textAlign: "center",
         borderRadius: 2,
         borderStyle: "dashed",
-        bgcolor: "#FAFBFC",
+        bgcolor: "surface.sunken",
       }}
     >
       <Typography color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
@@ -74,13 +74,13 @@ export default function SummaryTab({ summary, status }: SummaryTabProps) {
       <SummarySection
         title="Key findings"
         items={summary.key_findings}
-        accent="#2563EB"
+        accent="secondary.main"
       />
 
       <SummarySection
         title="Check by hand"
         items={summary.caveats}
-        accent="#D97706"
+        accent="warning.main"
       />
 
       {/* Summaries are written once, in the worker, before any human sees the

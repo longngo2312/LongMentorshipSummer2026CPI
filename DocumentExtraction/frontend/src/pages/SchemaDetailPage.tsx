@@ -1,36 +1,71 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Alert, Box, Button, CircularProgress, Container } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link as RouterLink, useParams } from "react-router-dom";
 import { getSchema } from "../api/schema";
+import PageShell from "../components/layout/PageShell";
 import RenderSchemaGrid from "../components/schema/RenderSchemaGrid";
-import SchemaBuilder from "../components/schema/SchemaBuilder";
 import type { SchemaDetail } from "../types";
 
+/** Tagged with the id it belongs to, so a stale response can't be shown. */
+interface Result {
+  id: number;
+  data?: SchemaDetail;
+  error?: string;
+}
+
+/** Read-only view of a schema. Editing happens on /schemas/:id/edit. */
 export default function SchemaDetailPage() {
   const { id } = useParams();
   const schemaId = Number(id);
-  const navigate = useNavigate();
-  const [schemaDetail, setSchemaDetail] = useState<SchemaDetail | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [result, setResult] = useState<Result | null>(null);
+
+  const validId = Number.isInteger(schemaId) && schemaId > 0;
 
   useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    setFetchError(null);
+    if (!validId) return;
+    const signal = { cancelled: false };
     getSchema(schemaId)
-      .then((data) => setSchemaDetail(data))
-      .catch((err) =>
-        setFetchError(
-          err instanceof Error ? err.message : "Failed to load schema",
-        ),
-      )
-      .finally(() => setLoading(false));
-  }, [id]);
+      .then((data) => {
+        if (!signal.cancelled) setResult({ id: schemaId, data });
+      })
+      .catch((err: unknown) => {
+        if (!signal.cancelled) {
+          setResult({
+            id: schemaId,
+            error: err instanceof Error ? err.message : "Failed to load schema",
+          });
+        }
+      });
+    return () => {
+      signal.cancelled = true;
+    };
+  }, [schemaId, validId]);
 
-  if (loading) {
+  if (!validId) {
+    return (
+      <PageShell title="Schema">
+        <Alert severity="error" sx={{ mb: 2 }}>
+          That is not a valid schema id.
+        </Alert>
+        <Button component={RouterLink} to="/schemas" startIcon={<ArrowBackIcon />}>
+          Back to Schemas
+        </Button>
+      </PageShell>
+    );
+  }
+
+  // Loading is derived from "the result I hold isn't for the id I want" rather
+  // than a flag set inside the effect.
+  if (result?.id !== schemaId) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", pt: 10 }}>
         <CircularProgress />
@@ -38,41 +73,49 @@ export default function SchemaDetailPage() {
     );
   }
 
-  if (fetchError || !schemaDetail) {
+  if (result.error || !result.data) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      <PageShell title="Schema">
         <Alert severity="error" sx={{ mb: 2 }}>
-          {fetchError ?? "Schema not found"}
+          {result.error ?? "Schema not found"}
         </Alert>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate("/schemas")}
-        >
+        <Button component={RouterLink} to="/schemas" startIcon={<ArrowBackIcon />}>
           Back to Schemas
         </Button>
-      </Container>
+      </PageShell>
     );
   }
 
+  const schema = result.data;
+
   return (
-    <>
-      <RenderSchemaGrid
-        schema={schemaDetail}
-        onEdit={() => setDrawerOpen(true)}
-      />
-      <SchemaBuilder
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onSuccess={() =>
-          getSchema(schemaId).then((data) => setSchemaDetail(data))
-        }
-        schemaId={schemaId}
-        initialData={{
-          name: schemaDetail.name,
-          description: schemaDetail.description ?? "",
-          columns: schemaDetail.schemaColumns,
-        }}
-      />
-    </>
+    <PageShell
+      title={schema.name}
+      subtitle={
+        <Stack component="span" spacing={0.5}>
+          {schema.description && <span>{schema.description}</span>}
+          <Typography variant="caption" color="text.secondary" component="span">
+            Created {new Date(schema.created_at).toLocaleDateString()}
+          </Typography>
+        </Stack>
+      }
+      actions={
+        <Stack direction="row" spacing={1}>
+          <Button component={RouterLink} to="/schemas" startIcon={<ArrowBackIcon />}>
+            Back
+          </Button>
+          <Button
+            component={RouterLink}
+            to={`/schemas/${schemaId}/edit`}
+            variant="contained"
+            startIcon={<EditIcon />}
+          >
+            Edit Schema
+          </Button>
+        </Stack>
+      }
+    >
+      <RenderSchemaGrid schema={schema} />
+    </PageShell>
   );
 }

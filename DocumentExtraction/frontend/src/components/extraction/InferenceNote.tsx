@@ -4,9 +4,9 @@ import { confidenceBand } from "../../utils/extractedValue";
 import GroundingChip from "./GroundingChip";
 
 const BAND_COLOR: Record<string, string> = {
-  high: "#059669",
-  medium: "#D97706",
-  low: "#DC2626",
+  high: "success.main",
+  medium: "warning.main",
+  low: "error.main",
 };
 
 interface InferenceNoteProps {
@@ -39,9 +39,9 @@ export default function InferenceNote({ field }: InferenceNoteProps) {
               height: 18,
               fontSize: "0.6rem",
               fontWeight: 600,
-              borderColor: inferred ? "#C7D2FE" : "#CBD5E1",
-              color: inferred ? "#4338CA" : "text.secondary",
-              bgcolor: inferred ? "#EEF2FF" : "transparent",
+              borderColor: inferred ? "secondary.main" : "divider",
+              color: inferred ? "secondary.main" : "text.secondary",
+              bgcolor: inferred ? "surface.activeRow" : "transparent",
               "& .MuiChip-label": { px: 0.75 },
             }}
           />

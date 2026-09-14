@@ -1,47 +1,56 @@
-import { Box, Button, Container, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import AddIcon from "@mui/icons-material/Add";
+import { Alert, Button } from "@mui/material";
+import { useEffect } from "react";
+import { Link as RouterLink } from "react-router-dom";
+import PageShell from "../components/layout/PageShell";
 import RenderSchemas from "../components/schema/RenderSchemas";
-import SchemaBuilder from "../components/schema/SchemaBuilder";
 import { useSchemaStore } from "../stores/schemaStore";
-import type { DocumentSchema } from "../types";
 
 export default function SchemaBuilderPage() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const fetchSchema = useSchemaStore((s) => s.fetchSchema);
-  const schemaArray = useSchemaStore((s) => s.schemas) as DocumentSchema[];
+  const schemas = useSchemaStore((s) => s.schemas);
+  const loading = useSchemaStore((s) => s.loading);
+  const error = useSchemaStore((s) => s.error);
   const deleteSchema = useSchemaStore((s) => s.removeSchema);
 
   useEffect(() => {
     fetchSchema();
-  }, []);
+  }, [fetchSchema]);
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 2,
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-          Schemas
-        </Typography>
-        <Button variant="contained" onClick={() => setDrawerOpen(true)}>
-          Add Schema
+    <PageShell
+      title="Schemas"
+      subtitle="The columns each uploaded document gets extracted into."
+      actions={
+        <Button
+          component={RouterLink}
+          to="/schemas/new"
+          variant="contained"
+          startIcon={<AddIcon />}
+        >
+          New Schema
         </Button>
-      </Box>
+      }
+    >
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={() => fetchSchema()}>
+              Retry
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      )}
 
-      <RenderSchemas schemas={schemaArray} onDelete={deleteSchema} />
-
-      <SchemaBuilder
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onSuccess={fetchSchema}
+      <RenderSchemas
+        schemas={schemas}
+        onDelete={deleteSchema}
+        loading={loading}
       />
-    </Container>
+    </PageShell>
   );
 }

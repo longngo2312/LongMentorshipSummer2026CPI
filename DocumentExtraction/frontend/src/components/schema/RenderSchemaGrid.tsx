@@ -1,10 +1,6 @@
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import EditIcon from "@mui/icons-material/Edit";
 import {
   Box,
-  Button,
   Chip,
-  Container,
   Paper,
   Table,
   TableBody,
@@ -14,12 +10,12 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import type { SchemaDetail } from "../../types";
 
 function parseEnumOptions(raw: unknown): string {
   if (!raw) return "—";
   if (Array.isArray(raw)) return raw.join(", ");
+  // `SELECT *` hands enum_options back as the raw JSON string.
   try {
     const parsed = JSON.parse(raw as string);
     return Array.isArray(parsed) ? parsed.join(", ") : String(raw);
@@ -28,58 +24,17 @@ function parseEnumOptions(raw: unknown): string {
   }
 }
 
+const HEADS = ["Name", "Type", "Required", "Description", "Enum Options"];
+
 interface RenderSchemaGridProps {
   schema: SchemaDetail;
-  onEdit: () => void;
 }
 
-export default function RenderSchemaGrid({ schema, onEdit }: RenderSchemaGridProps) {
-  const navigate = useNavigate();
-
+/** Read-only columns table. Page chrome lives in SchemaDetailPage, not here. */
+export default function RenderSchemaGrid({ schema }: RenderSchemaGridProps) {
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate("/schemas")}
-        sx={{ mb: 2 }}
-      >
-        Back to Schemas
-      </Button>
-
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          alignItems: { xs: "flex-start", sm: "flex-start" },
-          justifyContent: "space-between",
-          gap: 2,
-          mb: 3,
-        }}
-      >
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-            {schema.name}
-          </Typography>
-          {schema.description && (
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
-              {schema.description}
-            </Typography>
-          )}
-          <Typography variant="caption" color="text.secondary">
-            Created {new Date(schema.created_at).toLocaleDateString()}
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<EditIcon />}
-          onClick={onEdit}
-          sx={{ flexShrink: 0 }}
-        >
-          Edit Schema
-        </Button>
-      </Box>
-
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+    <>
+      <Typography variant="h6" sx={{ mb: 2 }}>
         Columns ({schema.schemaColumns.length})
       </Typography>
 
@@ -93,16 +48,16 @@ export default function RenderSchemaGrid({ schema, onEdit }: RenderSchemaGridPro
             <Table size="small" sx={{ minWidth: 500 }}>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Required</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Description</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Enum Options</TableCell>
+                  {HEADS.map((head) => (
+                    <TableCell key={head} scope="col" sx={{ fontWeight: 700 }}>
+                      {head}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {schema.schemaColumns.map((col) => (
-                  <TableRow key={col.id}>
+                  <TableRow key={col.id} hover>
                     <TableCell>{col.name}</TableCell>
                     <TableCell>
                       <Chip label={col.data_type} size="small" />
@@ -117,6 +72,6 @@ export default function RenderSchemaGrid({ schema, onEdit }: RenderSchemaGridPro
           </TableContainer>
         </Box>
       )}
-    </Container>
+    </>
   );
 }

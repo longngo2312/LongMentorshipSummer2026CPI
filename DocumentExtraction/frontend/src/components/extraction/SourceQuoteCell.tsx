@@ -96,8 +96,8 @@ export default function SourceQuoteCell({
               }
             : {
                 color: "secondary.main",
-                bgcolor: "#EFF6FF",
-                "&:hover": { bgcolor: "#DBEAFE" },
+                bgcolor: "surface.activeRow",
+                "&:hover": { bgcolor: "action.selected" },
               }),
         }}
       >
