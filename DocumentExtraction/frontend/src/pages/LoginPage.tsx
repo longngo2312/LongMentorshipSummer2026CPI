@@ -2,8 +2,10 @@ import {
   Alert,
   Box,
   Button,
-  Container,
+  Checkbox,
+  FormControlLabel,
   Link as MuiLink,
+  Stack,
   TextField,
   Typography,
 } from "@mui/material";
@@ -11,6 +13,8 @@ import type React from "react";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { login } from "../api/auth";
+import AuthLayout from "../components/auth/AuthLayout";
+import PasswordField from "../components/auth/PasswordField";
 import { useAuthStore } from "../stores/authStore";
 
 export default function LoginPage() {
@@ -18,6 +22,7 @@ export default function LoginPage() {
   const setAuth = useAuthStore((s) => s.setAuth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +31,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const { user, token } = await login(email, password);
+      const { user, token } = await login(email, password, rememberMe);
       setAuth(user, token);
       navigate("/");
     } catch (error) {
@@ -37,25 +42,20 @@ export default function LoginPage() {
   }
 
   return (
-    <Container maxWidth="xs">
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          py: 4,
-        }}
-      >
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-        >
-          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-            Welcome Back
-          </Typography>
-
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Log in to manage your schemas and documents."
+      footer={
+        <Typography variant="body2" color="text.secondary">
+          Don't have an account?{" "}
+          <MuiLink component={RouterLink} to="/register" sx={{ fontWeight: 600 }}>
+            Sign up
+          </MuiLink>
+        </Typography>
+      }
+    >
+      <Box component="form" onSubmit={handleSubmit}>
+        <Stack spacing={2.5}>
           {error && <Alert severity="error">{error}</Alert>}
 
           <TextField
@@ -63,31 +63,47 @@ export default function LoginPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            disabled={loading}
             fullWidth
             required
           />
 
-          <TextField
-            label="Password"
-            type="password"
+          <PasswordField
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            fullWidth
-            required
+            onChange={setPassword}
+            autoComplete="current-password"
+            disabled={loading}
           />
 
-          <Button type="submit" variant="contained" fullWidth disabled={loading}>
-            {loading ? "Logging In..." : "Log In"}
-          </Button>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={loading}
+                size="small"
+              />
+            }
+            label={
+              <Typography variant="body2" color="text.secondary">
+                Keep me signed in for 90 days
+              </Typography>
+            }
+          />
 
-          <Typography variant="body2" sx={{ textAlign: "center" }}>
-            Don't have an account?{" "}
-            <MuiLink component={RouterLink} to="/register">
-              Sign up
-            </MuiLink>
-          </Typography>
-        </Box>
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            fullWidth
+            disabled={loading}
+            sx={{ py: 1.25, fontWeight: 600 }}
+          >
+            {loading ? "Logging in…" : "Log in"}
+          </Button>
+        </Stack>
       </Box>
-    </Container>
+    </AuthLayout>
   );
 }

@@ -1,0 +1,19 @@
+{
+  "name": "document-extraction",
+  "version": "1.0.0",
+  "description": "Runs the API and the frontend together.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently --names api,web --prefix-colors cyan,magenta --kill-others-on-fail \"npm --prefix api run dev\" \"npm --prefix frontend run dev\"",
+    "dev:api": "npm --prefix api run dev",
+    "dev:web": "npm --prefix frontend run dev",
+    "build": "npm --prefix api run build && npm --prefix frontend run build",
+    "typecheck": "npm --prefix api exec tsc -- --noEmit && npm --prefix frontend exec tsc -- -b --noEmit",
+    "lint": "npm --prefix frontend run lint",
+    "setup": "npm install && npm --prefix api install && npm --prefix frontend install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}

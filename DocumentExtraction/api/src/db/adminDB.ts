@@ -35,6 +35,20 @@ adminDB.exec(
             created_at   TEXT NOT NULL DEFAULT (datetime('now'))
         );
         CREATE INDEX IF NOT EXISTS idx_jobs_status ON extraction_jobs(status, id);
+
+        -- One row per issued refresh token. token_hash is a SHA-256 of the
+        -- value we handed the client: a leaked DB gives an attacker hashes,
+        -- not usable sessions. Rows are kept after revocation so that reuse
+        -- of a rotated token is detectable (see revokeAllForUser).
+        CREATE TABLE IF NOT EXISTS refresh_tokens (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            token_hash  TEXT    NOT NULL UNIQUE,
+            expires_at  TEXT    NOT NULL,
+            revoked_at  TEXT,
+            created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_refresh_user ON refresh_tokens(user_id);
     `,
 );
 
